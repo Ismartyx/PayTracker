@@ -31,6 +31,8 @@ jobs:
           cordova create app com.kargah.finance "FinanceApp"
           rm -rf app/www/*
           cp index.html app/www/
+          cp icon.png app/
+          sed -i 's|</widget>|    <icon src="icon.png" />\n</widget>|' app/config.xml
           cd app
           cordova platform add android
           cordova build android
