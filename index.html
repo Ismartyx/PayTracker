@@ -6,12 +6,14 @@
   <meta name="theme-color" content="#0f172a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="apple-touch-icon" href="icon.png" />
   <title>دفتر مالی</title>
   <style>
     :root {
       --bg: #0b1220; --panel: #111827; --panel2: #0f172a; --line: #243041; 
       --text: #e5e7eb; --muted: #94a3b8; --accent: #38bdf8; --good: #22c55e; 
-      --warn: #f59e0b; --bad: #ef4444; --chip: #1e293b; --nc: #0082c9;
+      --warn: #f59e0b; --bad: #ef4444; --chip: #1e293b;
       --fz: 16px;
     }
     * { box-sizing: border-box; touch-action: manipulation; -webkit-user-select: none; user-select: none; } 
@@ -41,7 +43,6 @@
     button.good { background: linear-gradient(135deg, #16a34a, #22c55e); }
     button.warn { background: linear-gradient(135deg, #d97706, #f59e0b); }
     button.bad { background: linear-gradient(135deg, #dc2626, #ef4444); }
-    button.nc-btn { background: linear-gradient(135deg, #0082c9, #005f93); border: 1px solid #0082c9;}
     button:active { transform: scale(.97); }
     input, select, textarea { width: 100%; border-radius: 14px; border: 1px solid #334155; background: #0b1220; color: var(--text); padding: 12px 12px; font-size: 1em; outline: none; font-family: inherit; }
     input[type=number] { font-family: monospace; direction: ltr; text-align: left; }
@@ -70,23 +71,28 @@
     .muted { color: var(--muted); }
     .empty { padding: 24px; text-align: center; color: var(--muted); }
     .fab { position: fixed; bottom: 18px; left: 18px; z-index: 50; box-shadow: 0 10px 24px rgba(0,0,0,.35); }
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: none; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(3px); }
+    
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
     .modal { width: min(100%, 760px); max-height: 90vh; overflow-y: auto; background: #0f172a; border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid #243041; padding: 16px; -webkit-overflow-scrolling: touch; transform: translateZ(0); }
-    .modal.show, .modal-backdrop.show { display: flex; animation: slideUp 0.2s ease-out; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .modal.show, .modal-backdrop.show { display: flex; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes splashSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
     .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
     .small { font-size: 0.75em; }
     .toast { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 200; display: none; }
     .toast.show { display: block; animation: fadeIn 0.3s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .toast .card { padding: 12px 14px; text-align: center; background: #22c55e; color: #fff; font-weight: bold; border: none; }
-    .hint { margin-top: 6px; color: var(--muted); font-size: 0.75em; line-height: 1.8; }
     .section { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #334155; }
     .hidden { display: none !important; }
     .dateFieldWrap { display: flex; gap: 8px; align-items: center; }
     .dateFieldWrap input { flex: 1; }
     .dateFieldWrap button { white-space: nowrap; padding: 12px 10px; }
     .picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    
     @media (min-width: 600px) {
         .grid { flex-direction: row; }
         .stat { flex-direction: column; align-items: flex-start; flex: 1; }
@@ -95,12 +101,22 @@
   </style>
 </head>
 <body>
+  
+  <div id="splashScreen" style="position:fixed; inset:0; background:linear-gradient(180deg, #08101d 0%, #0b1220 100%); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.5s ease, visibility 0.5s;">
+      <div style="width: 84px; height: 84px; background: linear-gradient(135deg, #0ea5e9, #2563eb); border-radius: 22px; display:flex; align-items:center; justify-content:center; box-shadow: 0 10px 30px rgba(14,165,233,0.3); margin-bottom: 24px;">
+          <svg width="46" height="46" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </div>
+      <h1 style="color: white; margin: 0; font-size: 1.6em; font-weight: 800; letter-spacing: -0.5px;">دفتر مالی</h1>
+      <p style="color: #94a3b8; font-size: 0.9em; margin-top: 8px;">نسخه اپلیکیشن بومی</p>
+      <div style="margin-top: 40px; width: 36px; height: 36px; border: 3px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: splashSpin 1s linear infinite;"></div>
+  </div>
+
   <div class="toast" id="toast"><div class="card" id="toastText"></div></div>
   <div class="wrap">
     <div class="top">
       <div>
-        <div class="brand">دفتر مالی کارگاه</div>
-        <div class="sub">نسخه اپلیکیشن بومی</div>
+        <div class="brand">دفتر مالی</div>
+        <div class="sub">مدیریت هوشمند حساب‌ها</div>
       </div>
       <div class="header-actions">
         <button class="font-btn" onclick="changeFontSize(1)">A+</button>
@@ -125,9 +141,8 @@
 
     <div class="toolbar">
       <button class="primary" id="addBtn">+ ثبت جدید</button>
-      <button class="nc-btn" id="openNcBtn">☁️ سرور Nextcloud</button>
-      <button id="backupBtn">بکاپ JSON</button>
-      <button id="importBtn">بازیابی</button>
+      <button id="backupBtn">اشتراک و بکاپ 📤</button>
+      <button id="importBtn">بازیابی 📥</button>
       <input type="file" id="importFile" accept="application/json" hidden />
     </div>
 
@@ -177,7 +192,24 @@
     <div class="modal" id="modal"></div>
   </div>
 
+  <!-- مودال نمایش عکس به صورت تمام صفحه -->
+  <div class="modal-backdrop" id="imageViewerModal" style="z-index: 10000; align-items: center; justify-content: center;" onclick="this.classList.remove('show')">
+      <div style="position: relative; max-width: 95%; max-height: 90vh;">
+          <img id="fullSizeImage" style="width: 100%; max-height: 90vh; border-radius: 16px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
+          <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: sans-serif;">✕</div>
+      </div>
+  </div>
+
 <script>
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        setTimeout(() => splash.remove(), 500);
+    }, 800);
+});
+
 let currentFontSize = parseInt(localStorage.getItem('appFontSize')) || 16;
 document.documentElement.style.setProperty('--fz', currentFontSize + 'px');
 
@@ -248,6 +280,9 @@ function showToast(msg){
 }
 
 window.addEventListener('popstate', function(e) {
+  const picker = document.getElementById('datePickerOverlay');
+  if (picker) { picker.remove(); }
+  
   const backdrop = document.getElementById('backdrop');
   if (backdrop.classList.contains('show')) {
       backdrop.classList.remove('show');
@@ -268,7 +303,12 @@ document.getElementById('backdrop').addEventListener('click', (e)=>{ if(e.target
 
 function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&','<':'<','>':'>','"':'&quot;',"'":'&#39;'}[m])); }
 
-// ---- توابع جدید برای حذف کادرهای پیش‌فرض مرورگر ----
+window.showFullImage = function(src) {
+    if(!src) return;
+    document.getElementById('fullSizeImage').src = src;
+    document.getElementById('imageViewerModal').classList.add('show');
+}
+
 window.customConfirm = function(msg, onConfirm) {
     openModal(`
         <div class="modal-head">
@@ -309,13 +349,12 @@ window.customPrompt = function(title, defaultVal, onConfirm) {
         onConfirm(val);
     };
 };
-// --------------------------------------------------
 
 function openPickerOverlay(initialIso, onPick){
-  window.history.pushState({modal: true}, "");
   const overlay = document.createElement('div');
   overlay.className = 'modal-backdrop show';
-  overlay.style.zIndex = 200;
+  overlay.id = 'datePickerOverlay';
+  overlay.style.zIndex = 300;
   overlay.innerHTML = `
     <div class="modal" style="margin:auto;">
       <div class="modal-head"><div><div style="font-weight:800">انتخاب تاریخ</div></div><button type="button" onclick="closePickerOverlay()">بستن</button></div>
@@ -348,16 +387,10 @@ function openPickerOverlay(initialIso, onPick){
   overlay.querySelector('#jSave').onclick = ()=>{
     const g = jalaliToGregorian(Number(yEl.value), Number(mEl.value), Number(dEl.value));
     onPick(`${g.gy}-${String(g.gm).padStart(2,'0')}-${String(g.gd).padStart(2,'0')}`);
-    window.history.back();
+    overlay.remove();
   };
   
-  window.closePickerOverlay = () => { window.history.back(); };
-  
-  const popHandler = function() {
-      overlay.remove();
-      window.removeEventListener('popstate', popHandler);
-  };
-  window.addEventListener('popstate', popHandler);
+  window.closePickerOverlay = () => { overlay.remove(); };
 }
 
 async function editRecord(id){ openForm(await getRecord(id)); }
@@ -371,7 +404,7 @@ async function removeRecord(id){
 
 function openForm(record=null){
   const r = record || {
-    id:'', type:'debt', title:'', counterparty:'', amount:'', paidAmount:0, dueDate:todayISO(), issueDate: todayISO(), status:'open', notes:'',
+    id:'', type:'debt', title:'', counterparty:'', invoiceNumber:'', image:'', amount:'', paidAmount:0, dueDate:todayISO(), issueDate: todayISO(), status:'open', notes:'',
     scheduleCount: 1, instEachAmount: '', installmentPaidCount: 0
   };
 
@@ -385,7 +418,7 @@ function openForm(record=null){
   openModal(`
     <div class="modal-head">
       <div style="font-weight:800;font-size:1.2em">${record ? 'ویرایش' : 'ثبت جدید'}</div>
-      <button onclick="closeModal()">بستن</button>
+      <button type="button" onclick="closeModal()">بستن</button>
     </div>
     <form id="recordForm">
       <input type="hidden" name="id" value="${r.id}">
@@ -399,8 +432,25 @@ function openForm(record=null){
       <label>عنوان / شرح</label>
       <input name="title" value="${escapeHtml(r.title||'')}" placeholder="مثال: اجاره، وام..." required>
       
-      <label>طرف حساب (اختیاری)</label>
-      <input name="counterparty" value="${escapeHtml(r.counterparty||'')}" placeholder="نام شخص">
+      <div class="row">
+        <div>
+           <label>طرف حساب (اختیاری)</label>
+           <input name="counterparty" value="${escapeHtml(r.counterparty||'')}" placeholder="نام شخص/شرکت">
+        </div>
+        <div>
+           <label>شماره فاکتور (اختیاری)</label>
+           <input name="invoiceNumber" value="${escapeHtml(r.invoiceNumber||'')}" placeholder="مثلاً: 1405-23">
+        </div>
+      </div>
+
+      <div class="section">
+         <label style="color:var(--accent);">عکس فاکتور / سند (اختیاری)</label>
+         <input type="file" id="invoiceImage" accept="image/*" style="padding: 10px; font-size: 0.85em;">
+         <input type="hidden" name="image" id="imageBase64" value="${r.image || ''}">
+         <div style="text-align: center;">
+            <img id="imagePreview" src="${r.image || ''}" style="display:${r.image ? 'inline-block' : 'none'}; width: 90px; height: 90px; border-radius: 12px; margin-top: 12px; cursor: pointer; object-fit: cover; border: 2px solid var(--line); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" onclick="showFullImage(this.src)">
+         </div>
+      </div>
 
       <div id="instSection" class="section hidden">
         <div class="row">
@@ -409,7 +459,7 @@ function openForm(record=null){
         </div>
       </div>
 
-      <div class="row">
+      <div class="row section">
         <div>
           <label id="amountLabel">مبلغ کل</label>
           <input name="amount" type="number" id="totalAmount" value="${r.amount||''}" placeholder="مبلغ نهایی" required>
@@ -449,6 +499,39 @@ function openForm(record=null){
   const instEachAmount = document.getElementById('instEachAmount');
   const instCount = document.getElementById('instCount');
   const amountLabel = document.getElementById('amountLabel');
+  
+  const imgInput = document.getElementById('invoiceImage');
+  if (imgInput) {
+      imgInput.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(event) {
+              const img = new Image();
+              img.onload = function() {
+                  const canvas = document.createElement('canvas');
+                  const MAX_WIDTH = 800;
+                  let width = img.width;
+                  let height = img.height;
+                  if (width > MAX_WIDTH) {
+                      height *= MAX_WIDTH / width;
+                      width = MAX_WIDTH;
+                  }
+                  canvas.width = width;
+                  canvas.height = height;
+                  const ctx = canvas.getContext('2d');
+                  ctx.drawImage(img, 0, 0, width, height);
+                  const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                  document.getElementById('imageBase64').value = base64;
+                  const preview = document.getElementById('imagePreview');
+                  preview.src = base64;
+                  preview.style.display = 'inline-block';
+              };
+              img.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+      });
+  }
 
   function toggleSections(){
     if(typeField.value === 'installment'){
@@ -475,10 +558,13 @@ function openForm(record=null){
   instCount.addEventListener('input', calcTotal);
   toggleSections();
 
-  document.getElementById('pickDueDate').onclick = ()=>openPickerOverlay(document.getElementById('dueDateValue').value, (iso)=>{
-    document.getElementById('dueDateValue').value = iso;
-    document.getElementById('dueDateField').value = isoToJalaliText(iso);
-  });
+  document.getElementById('pickDueDate').onclick = (e) => {
+      e.preventDefault(); 
+      openPickerOverlay(document.getElementById('dueDateValue').value, (iso)=>{
+        document.getElementById('dueDateValue').value = iso;
+        document.getElementById('dueDateField').value = isoToJalaliText(iso);
+      });
+  };
 
   document.getElementById('recordForm').addEventListener('submit', async (e)=>{
     e.preventDefault();
@@ -562,82 +648,6 @@ async function processPayment(id){
   }
 }
 
-function openNextcloudSettings() {
-  const savedUrl = localStorage.getItem('nc_url') || 'https://nc.taha.surf';
-  const savedUser = localStorage.getItem('nc_user') || 'saeed';
-  const savedPass = localStorage.getItem('nc_pass') || '';
-
-  openModal(`
-    <div class="modal-head">
-      <div style="font-weight:800;font-size:1.2em">☁️ همگام‌سازی با سرور</div>
-      <button onclick="closeModal()">بستن</button>
-    </div>
-    <div class="card" style="margin-bottom:12px">
-        <label>آدرس سرور</label>
-        <input type="text" id="ncUrl" value="${savedUrl}" dir="ltr">
-        <label>نام کاربری</label>
-        <input type="text" id="ncUser" value="${savedUser}" dir="ltr">
-        <label>رمز عبور (App Password)</label>
-        <input type="password" id="ncPass" value="${savedPass}" dir="ltr">
-    </div>
-    <div class="actions">
-        <button class="primary" onclick="syncToNextcloud('upload')" style="flex:1">آپلود ⬆️</button>
-        <button class="warn" onclick="syncToNextcloud('download')" style="flex:1">دریافت ⬇️</button>
-    </div>
-  `);
-}
-
-async function syncToNextcloud(action) {
-  const url = document.getElementById('ncUrl').value.replace(/\/$/, '');
-  const user = document.getElementById('ncUser').value;
-  const pass = document.getElementById('ncPass').value;
-
-  if(!url || !user || !pass) { showToast('لطفاً اطلاعات را کامل کنید'); return; }
-
-  localStorage.setItem('nc_url', url);
-  localStorage.setItem('nc_user', user);
-  localStorage.setItem('nc_pass', pass);
-
-  const webdavUrl = `${url}/remote.php/webdav/WorkshopFinanceBackup.json`;
-  const authHeader = 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
-
-  try {
-      showToast(action === 'upload' ? 'در حال ارسال...' : 'در حال دریافت...');
-      
-      if (action === 'upload') {
-          const rows = await getAll();
-          const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
-          const response = await fetch(webdavUrl, {
-              method: 'PUT',
-              headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload, null, 2)
-          });
-          if(response.ok) {
-             showToast('✅ با موفقیت ذخیره شد!');
-             closeModal();
-          } else { throw new Error('خطا: ' + response.status); }
-      } 
-      else if (action === 'download') {
-          const response = await fetch(webdavUrl, { method: 'GET', headers: { 'Authorization': authHeader } });
-          if(response.ok) {
-              const d = await response.json();
-              const rows = Array.isArray(d) ? d : (d.records || []);
-              for(let x of rows) {
-                  if (x.issueDateEpochDay && !x.issueDate) x.issueDate = new Date(x.issueDateEpochDay * 86400000).toISOString().split('T')[0];
-                  if (x.dueDateEpochDay && !x.dueDate) x.dueDate = new Date(x.dueDateEpochDay * 86400000).toISOString().split('T')[0];
-                  if (x.type === 'installment' && x.scheduleCount > 1 && !x.instEachAmount) x.instEachAmount = Math.round(x.amount / x.scheduleCount);
-                  await saveRecord(x);
-              }
-              await render();
-              showToast('✅ دریافت و جایگزین شد!');
-              closeModal();
-          } else { throw new Error('خطا: ' + response.status); }
-      }
-  } catch (error) {
-      alert('خطا در اتصال.\nدلیل: ' + error.message);
-  }
-}
-
 async function initDB(){
   return new Promise((resolve, reject)=>{
     const req = indexedDB.open(DB_NAME, DB_VERSION);
@@ -673,7 +683,7 @@ function isOverdue(r){
 function filtered(arr){
   const q = document.getElementById('search').value.trim().toLowerCase();
   let out = arr.filter(r=> !r.deleted).filter(r=>{
-    const searchHit = !q || [r.title,r.counterparty,r.notes].join(' ').toLowerCase().includes(q);
+    const searchHit = !q || [r.title,r.counterparty,r.notes,r.invoiceNumber].join(' ').toLowerCase().includes(q);
     const tabHit = currentTab === 'all' || (currentTab === 'overdue' ? isOverdue(r) : r.type === currentTab);
     const statusHit = currentStatus === 'all-status' || r.status === currentStatus;
     return searchHit && tabHit && statusHit;
@@ -689,23 +699,29 @@ function renderList(rows){
     let remaining = Math.max(0, Number(r.amount||0) - Number(r.paidAmount||0));
     let instText = '';
     let notesText = r.notes ? `<div style="margin-top:8px; font-size:0.85em; color:#93c5fd; background: rgba(147, 197, 253, 0.1); padding: 6px 10px; border-radius: 8px;">📝 ${escapeHtml(r.notes)}</div>` : '';
+    let invHTML = r.invoiceNumber ? `<div style="margin-top:6px; font-size:0.85em; color:var(--accent); font-weight:bold; background:rgba(56,189,248,0.1); display:inline-block; padding:2px 8px; border-radius:6px; border:1px solid rgba(56,189,248,0.3);">🧾 فاکتور: ${escapeHtml(r.invoiceNumber)}</div>` : '';
+    let imgHTML = r.image ? `<img src="${r.image}" onclick="showFullImage('${r.image}')" style="width:55px; height:55px; border-radius:10px; object-fit:cover; cursor:pointer; border: 1px solid var(--line); flex-shrink:0;">` : '';
     
     if(r.type === 'installment' && Number(r.scheduleCount) > 1) {
       let each = r.instEachAmount || (r.amount / r.scheduleCount);
       let paid = r.installmentPaidCount || 0;
       if (paid === 0 && r.paidAmount > 0 && each > 0) { paid = Math.round(r.paidAmount / each); }
-      instText = `<span class="pill warn">پرداخت شده: ${paid} از ${r.scheduleCount} قسط</span>`;
+      instText = `<span class="pill warn">پرداخت: ${paid} از ${r.scheduleCount}</span>`;
     }
 
     return `
       <div class="item">
         <div class="item-top">
-          <div>
-            <div class="title">${escapeHtml(r.title)}</div>
-            <div class="meta">${escapeHtml(r.counterparty||'—')}</div>
-            ${notesText}
+          <div style="display:flex; gap:12px; align-items:flex-start; flex:1; min-width:0;">
+            ${imgHTML}
+            <div style="flex:1; min-width:0;">
+              <div class="title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(r.title)}</div>
+              <div class="meta">${escapeHtml(r.counterparty||'—')}</div>
+              ${invHTML}
+              ${notesText}
+            </div>
           </div>
-          <div class="amount-display">
+          <div class="amount-display" style="padding-right:10px;">
             <div>${formatMoney(r.amount)}</div>
             <div class="small muted">مانده: ${formatMoney(remaining)}</div>
           </div>
@@ -784,7 +800,6 @@ function bindUI(){
   document.getElementById('fab').onclick = ()=>openForm();
   document.getElementById('search').oninput = render;
   document.getElementById('sortBy').onchange = render;
-  document.getElementById('openNcBtn').onclick = () => openNextcloudSettings();
   
   document.getElementById('tabs').addEventListener('click', (e)=>{
     if(e.target.tagName!=='BUTTON') return;
@@ -797,11 +812,32 @@ function bindUI(){
     btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
   }));
 
+  // متد اشتراک گذاری بومی اندروید
   document.getElementById('backupBtn').onclick = async () => {
     const rows = await getAll();
     const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup-${todayISO()}.json`; a.click();
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], {type:'application/json'});
+    const fileName = `backup-${todayISO()}.json`;
+
+    if (navigator.canShare) {
+        const file = new File([blob], fileName, { type: "application/json" });
+        try {
+            await navigator.share({
+                files: [file],
+                title: 'بکاپ دفتر مالی',
+                text: 'فایل بکاپ اطلاعات مالی کارگاه'
+            });
+            showToast('✅ منوی اشتراک باز شد');
+        } catch (err) {
+            console.log("Share canceled or failed", err);
+        }
+    } else {
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(blob); 
+        a.download = fileName; 
+        a.click();
+    }
   };
 
   document.getElementById('importBtn').onclick = ()=>document.getElementById('importFile').click();
