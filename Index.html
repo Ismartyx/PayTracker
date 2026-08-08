@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>دفتر مالی</title>
+  <style>
+    :root {
+      --bg: #0b1220; --panel: #111827; --panel2: #0f172a; --line: #243041; 
+      --text: #e5e7eb; --muted: #94a3b8; --accent: #38bdf8; --good: #22c55e; 
+      --warn: #f59e0b; --bad: #ef4444; --chip: #1e293b; --nc: #0082c9;
+      --fz: 16px;
+    }
+    * { box-sizing: border-box; touch-action: manipulation; -webkit-user-select: none; user-select: none; } 
+    input, textarea, select { -webkit-user-select: auto; user-select: auto; }
+    html, body { 
+      margin: 0; padding: 0; background: linear-gradient(180deg, #08101d 0%, #0b1220 100%); 
+      color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-size: var(--fz); -webkit-font-smoothing: antialiased; overscroll-behavior-y: none;
+    }
+    body { min-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 12px 90px; transform: translateZ(0); }
+    .top { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .brand { font-weight: 800; font-size: 1.15em; }
+    .sub { color: var(--muted); font-size: 0.75em; margin-top: 3px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .font-btn { background: var(--chip); border: 1px solid var(--line); color: var(--text); border-radius: 8px; padding: 4px 10px; cursor: pointer; font-weight: bold; }
+    
+    .grid { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .card { background: rgba(17,24,39,.92); border: 1px solid var(--line); border-radius: 18px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); transform: translateZ(0); }
+    .stat { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; }
+    .stat .label { color: var(--muted); font-size: 0.85em; font-weight: bold; margin: 0; }
+    .stat .value { font-size: 1.2em; font-weight: 800; margin: 0; white-space: nowrap; font-family: monospace; }
+    
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 12px; }
+    button, .btn { border: 0; border-radius: 14px; padding: 11px 14px; font-weight: 700; background: var(--chip); color: var(--text); cursor: pointer; font-size: 0.9em; }
+    button.primary { background: linear-gradient(135deg, #0ea5e9, #2563eb); }
+    button.good { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    button.warn { background: linear-gradient(135deg, #d97706, #f59e0b); }
+    button.bad { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    button.nc-btn { background: linear-gradient(135deg, #0082c9, #005f93); border: 1px solid #0082c9;}
+    button:active { transform: scale(.97); }
+    input, select, textarea { width: 100%; border-radius: 14px; border: 1px solid #334155; background: #0b1220; color: var(--text); padding: 12px 12px; font-size: 1em; outline: none; font-family: inherit; }
+    input[type=number] { font-family: monospace; direction: ltr; text-align: left; }
+    textarea { min-height: 84px; resize: vertical; }
+    input[readonly], input:disabled { background: #1e293b; color: #94a3b8; border-color: #0f172a; }
+    label { display: block; font-size: 0.8em; color: var(--muted); margin: 10px 0 6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin: 4px 0 10px; -webkit-overflow-scrolling: touch; }
+    .tab { white-space: nowrap; font-size: 0.85em; }
+    .tab.active { background: #334155; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    .filters .chip { padding: 8px 12px; border-radius: 999px; background: #0b1220; border: 1px solid #334155; color: var(--text); font-size: 0.8em; }
+    .filters .chip.active { background: #1d4ed8; border-color: #1d4ed8; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .item { background: rgba(15,23,42,.95); border: 1px solid var(--line); border-radius: 18px; padding: 12px; transform: translateZ(0); }
+    .item-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .title { font-weight: 800; font-size: 1em; }
+    .meta { font-size: 0.8em; color: var(--muted); margin-top: 4px; line-height: 1.7; }
+    .amount-display { font-family: monospace; font-weight: 800; font-size: 1.1em; direction: ltr; text-align: right; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: #132238; font-size: 0.75em; color: #cbd5e1; border: 1px solid #263246; }
+    .pill.good { background: rgba(34,197,94,.14); color: #86efac; border-color: rgba(34,197,94,.28); }
+    .pill.warn { background: rgba(245,158,11,.12); color: #fcd34d; border-color: rgba(245,158,11,.26); }
+    .pill.bad { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.26); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .actions button { padding: 8px 12px; border-radius: 12px; font-size: 0.85em; }
+    .muted { color: var(--muted); }
+    .empty { padding: 24px; text-align: center; color: var(--muted); }
+    .fab { position: fixed; bottom: 18px; left: 18px; z-index: 50; box-shadow: 0 10px 24px rgba(0,0,0,.35); }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: none; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(3px); }
+    .modal { width: min(100%, 760px); max-height: 90vh; overflow-y: auto; background: #0f172a; border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid #243041; padding: 16px; -webkit-overflow-scrolling: touch; transform: translateZ(0); }
+    .modal.show, .modal-backdrop.show { display: flex; animation: slideUp 0.2s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .small { font-size: 0.75em; }
+    .toast { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 200; display: none; }
+    .toast.show { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .toast .card { padding: 12px 14px; text-align: center; background: #22c55e; color: #fff; font-weight: bold; border: none; }
+    .hint { margin-top: 6px; color: var(--muted); font-size: 0.75em; line-height: 1.8; }
+    .section { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #334155; }
+    .hidden { display: none !important; }
+    .dateFieldWrap { display: flex; gap: 8px; align-items: center; }
+    .dateFieldWrap input { flex: 1; }
+    .dateFieldWrap button { white-space: nowrap; padding: 12px 10px; }
+    .picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    @media (min-width: 600px) {
+        .grid { flex-direction: row; }
+        .stat { flex-direction: column; align-items: flex-start; flex: 1; }
+        .stat .value { margin-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast"><div class="card" id="toastText"></div></div>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="brand">دفتر مالی کارگاه</div>
+        <div class="sub">نسخه اپلیکیشن بومی</div>
+      </div>
+      <div class="header-actions">
+        <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+        <button class="font-btn" onclick="changeFontSize(-1)">A-</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card stat">
+          <div class="label">کل بدهی‌های باز</div>
+          <div class="value" id="statDebt" style="color:var(--text)">0</div>
+      </div>
+      <div class="card stat">
+          <div class="label">بدهیِ سررسید شده</div>
+          <div class="value" id="statOverdueDebt" style="color:var(--bad)">0</div>
+      </div>
+      <div class="card stat">
+          <div class="label">قسطِ سررسید شده</div>
+          <div class="value" id="statOverdueInst" style="color:var(--warn)">0</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="primary" id="addBtn">+ ثبت جدید</button>
+      <button class="nc-btn" id="openNcBtn">☁️ سرور Nextcloud</button>
+      <button id="backupBtn">بکاپ JSON</button>
+      <button id="importBtn">بازیابی</button>
+      <input type="file" id="importFile" accept="application/json" hidden />
+    </div>
+
+    <div id="remindersWrap"></div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-tab="all">همه</button>
+      <button class="tab" data-tab="debt">بدهی</button>
+      <button class="tab" data-tab="receivable">طلب</button>
+      <button class="tab" data-tab="cheque">چک</button>
+      <button class="tab" data-tab="installment">قسط</button>
+      <button class="tab" data-tab="expense">هزینه ثابت</button>
+      <button class="tab" data-tab="overdue">عقب‌افتاده</button>
+    </div>
+
+    <div class="filters">
+      <button class="chip active" data-filter="open">باز</button>
+      <button class="chip" data-filter="partial">بخشی</button>
+      <button class="chip" data-filter="closed">تسویه</button>
+      <button class="chip" data-filter="all-status">همه</button>
+    </div>
+
+    <div class="card" style="margin-bottom: 12px;">
+      <div class="row" style="align-items:center;">
+        <div>
+          <div class="small muted">جستجو</div>
+          <input id="search" placeholder="نام، شرح..." />
+        </div>
+        <div>
+          <div class="small muted">مرتب‌سازی</div>
+          <select id="sortBy">
+            <option value="dueAsc">سررسید نزدیک‌تر</option>
+            <option value="updatedDesc">آخرین تغییر</option>
+            <option value="amountDesc">مبلغ بیشتر</option>
+            <option value="amountAsc">مبلغ کمتر</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="list" id="list"></div>
+  </div>
+
+  <button class="fab primary" id="fab">+ ثبت</button>
+
+  <div class="modal-backdrop" id="backdrop">
+    <div class="modal" id="modal"></div>
+  </div>
+
+<script>
+let currentFontSize = parseInt(localStorage.getItem('appFontSize')) || 16;
+document.documentElement.style.setProperty('--fz', currentFontSize + 'px');
+
+function changeFontSize(step) {
+    currentFontSize += (step * 2);
+    if(currentFontSize < 12) currentFontSize = 12;
+    if(currentFontSize > 24) currentFontSize = 24;
+    document.documentElement.style.setProperty('--fz', currentFontSize + 'px');
+    localStorage.setItem('appFontSize', currentFontSize);
+}
+
+const DB_NAME = 'workshop_finance_db';
+const DB_VERSION = 3;
+const STORE = 'records';
+let db;
+let currentTab = 'all';
+let currentStatus = 'open';
+
+const formatMoney = (n) => (Number(n||0)).toLocaleString('en-US');
+const todayISO = () => new Date().toISOString().slice(0,10);
+const daysFromNow = (n) => { const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const uid = () => String(Date.now())+Math.random().toString(16).slice(2);
+
+function div(a,b){ return ~~(a/b); }
+function jalaliToGregorian(jy, jm, jd) {
+  jy += 1595;
+  let days = -355668 + (365 * jy) + div(jy / 33, 1) * 8 + div(((jy % 33) + 3), 4) + jd + (jm < 7 ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+  let gy = 400 * div(days, 146097);
+  days %= 146097;
+  if (days > 36524) { gy += 100 * div(--days, 36524); days %= 36524; if (days >= 365) days++; }
+  gy += 4 * div(days, 1461); days %= 1461;
+  if (days > 365) { gy += div(days - 1, 365); days = (days - 1) % 365; }
+  let gd = days + 1;
+  const sal_a = [0,31,((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28,31,30,31,30,31,31,30,31,30,31];
+  let gm; for (gm = 1; gm <= 12 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
+  return { gy, gm, gd };
+}
+function gregorianToJalali(gy, gm, gd){
+  var g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334];
+  gy = Number(gy); gm = Number(gm); gd = Number(gd);
+  var jy; if (gy > 1600) { jy = 979; gy -= 1600; } else { jy = 0; gy -= 621; }
+  var gy2 = (gm > 2) ? (gy + 1) : gy;
+  var days = (365 * gy) + div((gy2 + 3), 4) - div((gy2 + 99), 100) + div((gy2 + 399), 400) - 80 + gd + g_d_m[gm - 1];
+  jy += 33 * div(days, 12053); days %= 12053;
+  jy += 4 * div(days, 1461); days %= 1461;
+  if (days > 365) { jy += div(days - 1, 365); days = (days - 1) % 365; }
+  var jm = (days < 186) ? 1 + div(days, 31) : 7 + div(days - 186, 30);
+  var jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+  return { jy, jm, jd };
+}
+function isoToJalaliParts(iso){
+  if(!iso) return null; const [y,m,d] = iso.split('-').map(Number);
+  try{ return gregorianToJalali(y,m,d); }catch(e){ return null; }
+}
+function isoToJalaliText(iso){
+  const p = isoToJalaliParts(iso);
+  if(!p) return '—';
+  return `${p.jy}/${String(p.jm).padStart(2,'0')}/${String(p.jd).padStart(2,'0')}`;
+}
+
+const stateLabels = { open: 'باز', partial: 'بخشی پرداخت شده', closed: 'تسویه شده' };
+const typeLabels = { debt: 'بدهی', receivable: 'طلب', cheque: 'چک', installment: 'قسط', expense: 'هزینه ثابت', income: 'درآمد' };
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').innerHTML = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+window.addEventListener('popstate', function(e) {
+  const backdrop = document.getElementById('backdrop');
+  if (backdrop.classList.contains('show')) {
+      backdrop.classList.remove('show');
+      document.body.style.overflow = '';
+  }
+});
+
+function openModal(html){
+  window.history.pushState({modal: true}, "");
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('backdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  window.history.back();
+}
+document.getElementById('backdrop').addEventListener('click', (e)=>{ if(e.target.id==='backdrop') closeModal(); });
+
+function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&','<':'<','>':'>','"':'&quot;',"'":'&#39;'}[m])); }
+
+// ---- توابع جدید برای حذف کادرهای پیش‌فرض مرورگر ----
+window.customConfirm = function(msg, onConfirm) {
+    openModal(`
+        <div class="modal-head">
+          <div style="font-weight:800;font-size:1.2em;color:var(--warn)">تایید پرداخت</div>
+          <button onclick="closeModal()">لغو</button>
+        </div>
+        <div style="padding: 20px 10px; text-align: center; font-size: 1.1em; line-height: 1.6;">
+            ${msg.replace(/\n/g, '<br>')}
+        </div>
+        <div class="row" style="margin-top: 15px;">
+            <button class="good" onclick="submitCustomConfirm()">بله، پرداخت شد</button>
+            <button class="bad" onclick="closeModal()">خیر، انصراف</button>
+        </div>
+    `);
+    window.submitCustomConfirm = () => {
+        closeModal();
+        onConfirm();
+    };
+};
+
+window.customPrompt = function(title, defaultVal, onConfirm) {
+    openModal(`
+        <div class="modal-head">
+          <div style="font-weight:800;font-size:1.2em;color:var(--accent)">ثبت پرداختی جدید</div>
+          <button onclick="closeModal()">لغو</button>
+        </div>
+        <div style="padding: 10px 0;">
+            <label style="text-align:center; font-size:1em;">${title}</label>
+            <input type="text" id="promptInput" value="${defaultVal}" dir="ltr" style="font-family:monospace; font-size:1.5em; font-weight:bold; text-align:center; margin-top:10px; padding:15px; color:var(--accent)">
+        </div>
+        <div style="margin-top: 20px;">
+            <button class="good" style="width:100%; padding:14px; font-size:1.1em;" onclick="submitCustomPrompt()">تایید و کسر از مانده</button>
+        </div>
+    `);
+    window.submitCustomPrompt = () => {
+        const val = document.getElementById('promptInput').value;
+        closeModal();
+        onConfirm(val);
+    };
+};
+// --------------------------------------------------
+
+function openPickerOverlay(initialIso, onPick){
+  window.history.pushState({modal: true}, "");
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-backdrop show';
+  overlay.style.zIndex = 200;
+  overlay.innerHTML = `
+    <div class="modal" style="margin:auto;">
+      <div class="modal-head"><div><div style="font-weight:800">انتخاب تاریخ</div></div><button type="button" onclick="closePickerOverlay()">بستن</button></div>
+      <div class="card" style="background:#0b1220;">
+        <div class="picker-grid">
+          <div><label>سال</label><select id="jYear"></select></div>
+          <div><label>ماه</label><select id="jMonth"></select></div>
+          <div><label>روز</label><select id="jDay"></select></div>
+        </div>
+        <div class="actions" style="margin-top:20px">
+          <button class="primary" type="button" id="jSave">تایید تاریخ</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const p = isoToJalaliParts(initialIso || todayISO()) || {jy:1405,jm:1,jd:1};
+  const yEl = overlay.querySelector('#jYear'), mEl = overlay.querySelector('#jMonth'), dEl = overlay.querySelector('#jDay');
+  
+  yEl.innerHTML = Array.from({length:15},(_,i)=>p.jy-7+i).map(y=>`<option value="${y}" ${y===p.jy?'selected':''}>${y}</option>`).join('');
+  mEl.innerHTML = Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}" ${m===p.jm?'selected':''}>${m}</option>`).join('');
+  
+  function fillDays(){
+    const max = Number(mEl.value) <= 6 ? 31 : (Number(mEl.value) === 12 ? 29 : 30);
+    const cur = Math.min(Number(p.jd||1), max);
+    dEl.innerHTML = Array.from({length:max},(_,i)=>i+1).map(d=>`<option value="${d}" ${d===cur?'selected':''}>${d}</option>`).join('');
+  }
+  yEl.onchange = fillDays; mEl.onchange = fillDays; fillDays();
+
+  overlay.querySelector('#jSave').onclick = ()=>{
+    const g = jalaliToGregorian(Number(yEl.value), Number(mEl.value), Number(dEl.value));
+    onPick(`${g.gy}-${String(g.gm).padStart(2,'0')}-${String(g.gd).padStart(2,'0')}`);
+    window.history.back();
+  };
+  
+  window.closePickerOverlay = () => { window.history.back(); };
+  
+  const popHandler = function() {
+      overlay.remove();
+      window.removeEventListener('popstate', popHandler);
+  };
+  window.addEventListener('popstate', popHandler);
+}
+
+async function editRecord(id){ openForm(await getRecord(id)); }
+async function removeRecord(id){ 
+  customConfirm('آیا از حذف این مورد اطمینان دارید؟\nاین عملیات قابل بازگشت نیست.', async () => {
+    await softDeleteRecord(id); 
+    await render(); 
+    showToast('حذف شد'); 
+  });
+}
+
+function openForm(record=null){
+  const r = record || {
+    id:'', type:'debt', title:'', counterparty:'', amount:'', paidAmount:0, dueDate:todayISO(), issueDate: todayISO(), status:'open', notes:'',
+    scheduleCount: 1, instEachAmount: '', installmentPaidCount: 0
+  };
+
+  if(r.type === 'installment' && !r.instEachAmount && r.scheduleCount > 1) {
+    r.instEachAmount = Math.round(r.amount / r.scheduleCount);
+  }
+  if (r.type === 'installment' && r.paidAmount > 0 && (!r.installmentPaidCount || r.installmentPaidCount === 0)) {
+    r.installmentPaidCount = Math.round(r.paidAmount / r.instEachAmount);
+  }
+
+  openModal(`
+    <div class="modal-head">
+      <div style="font-weight:800;font-size:1.2em">${record ? 'ویرایش' : 'ثبت جدید'}</div>
+      <button onclick="closeModal()">بستن</button>
+    </div>
+    <form id="recordForm">
+      <input type="hidden" name="id" value="${r.id}">
+      <input type="hidden" name="installmentPaidCount" value="${r.installmentPaidCount||0}">
+      
+      <label>نوع تراکنش</label>
+      <select name="type" id="typeField">
+        ${Object.entries(typeLabels).map(([k,v])=>`<option value="${k}" ${r.type===k?'selected':''}>${v}</option>`).join('')}
+      </select>
+      
+      <label>عنوان / شرح</label>
+      <input name="title" value="${escapeHtml(r.title||'')}" placeholder="مثال: اجاره، وام..." required>
+      
+      <label>طرف حساب (اختیاری)</label>
+      <input name="counterparty" value="${escapeHtml(r.counterparty||'')}" placeholder="نام شخص">
+
+      <div id="instSection" class="section hidden">
+        <div class="row">
+          <div><label>مبلغ هر قسط</label><input type="number" id="instEachAmount" value="${r.instEachAmount||''}" placeholder="مبلغ یک قسط"></div>
+          <div><label>تعداد کل اقساط</label><input name="scheduleCount" type="number" id="instCount" min="1" value="${r.scheduleCount||1}"></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label id="amountLabel">مبلغ کل</label>
+          <input name="amount" type="number" id="totalAmount" value="${r.amount||''}" placeholder="مبلغ نهایی" required>
+        </div>
+        <div>
+          <label>پرداخت شده تا الان</label>
+          <input name="paidAmount" type="number" value="${r.paidAmount||0}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>سررسید</label>
+          <div class="dateFieldWrap">
+            <input id="dueDateField" class="readonlyLike" type="text" value="${isoToJalaliText(r.dueDate)}" readonly>
+            <button type="button" id="pickDueDate">تغییر</button>
+          </div>
+          <input type="hidden" name="dueDate" id="dueDateValue" value="${r.dueDate||todayISO()}">
+        </div>
+      </div>
+
+      <label>وضعیت (محاسبه خودکار)</label>
+      <input class="readonlyLike" value="${stateLabels[r.status] || 'باز'}" readonly disabled>
+
+      <label>یادداشت</label>
+      <textarea name="notes">${escapeHtml(r.notes||'')}</textarea>
+      
+      <div class="actions" style="margin-top:16px">
+        <button class="primary" type="submit" style="flex:1">ذخیره اطلاعات</button>
+      </div>
+    </form>
+  `);
+
+  const typeField = document.getElementById('typeField');
+  const instSection = document.getElementById('instSection');
+  const totalAmount = document.getElementById('totalAmount');
+  const instEachAmount = document.getElementById('instEachAmount');
+  const instCount = document.getElementById('instCount');
+  const amountLabel = document.getElementById('amountLabel');
+
+  function toggleSections(){
+    if(typeField.value === 'installment'){
+      instSection.classList.remove('hidden');
+      totalAmount.setAttribute('readonly', 'true');
+      amountLabel.innerText = 'مبلغ کل (محاسبه خودکار)';
+    } else {
+      instSection.classList.add('hidden');
+      totalAmount.removeAttribute('readonly');
+      amountLabel.innerText = 'مبلغ کل';
+    }
+  }
+  
+  function calcTotal(){
+    if(typeField.value === 'installment'){
+      const each = Number(instEachAmount.value || 0);
+      const count = Number(instCount.value || 1);
+      totalAmount.value = each * count;
+    }
+  }
+
+  typeField.addEventListener('change', toggleSections);
+  instEachAmount.addEventListener('input', calcTotal);
+  instCount.addEventListener('input', calcTotal);
+  toggleSections();
+
+  document.getElementById('pickDueDate').onclick = ()=>openPickerOverlay(document.getElementById('dueDateValue').value, (iso)=>{
+    document.getElementById('dueDateValue').value = iso;
+    document.getElementById('dueDateField').value = isoToJalaliText(iso);
+  });
+
+  document.getElementById('recordForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = Object.fromEntries(fd.entries());
+    
+    data.amount = Number(data.amount||0);
+    data.paidAmount = Number(data.paidAmount||0);
+    data.scheduleCount = Number(data.scheduleCount||1);
+    data.installmentPaidCount = Number(data.installmentPaidCount||0);
+    if(data.type === 'installment' && instEachAmount.value) {
+      data.instEachAmount = Number(instEachAmount.value);
+    }
+    
+    if(!record) data.id = uid();
+    data.updatedAt = new Date().toISOString();
+    
+    if(data.type === 'installment' && data.scheduleCount > 1) {
+       data.status = data.installmentPaidCount >= data.scheduleCount ? 'closed' : (data.installmentPaidCount > 0 ? 'partial' : 'open');
+    } else {
+       if (data.paidAmount >= data.amount && data.amount > 0) data.status = 'closed';
+       else if (data.paidAmount > 0) data.status = 'partial';
+       else data.status = 'open';
+    }
+
+    await saveRecord(data);
+    closeModal();
+    await render();
+    showToast('ذخیره شد');
+  });
+}
+
+async function processPayment(id){
+  const item = await getRecord(id);
+  if(!item) return;
+
+  if(item.type === 'installment' && Number(item.scheduleCount) > 1) {
+    let each = item.instEachAmount || (item.amount / item.scheduleCount);
+    let paidCount = item.installmentPaidCount || 0;
+    
+    if (paidCount === 0 && item.paidAmount > 0 && each > 0) {
+        paidCount = Math.round(item.paidAmount / each);
+    }
+
+    const rem = item.scheduleCount - paidCount;
+    if(rem <= 0) { showToast('همه اقساط پرداخت شده است!'); return; }
+    
+    customConfirm(`آیا یک قسط به مبلغ\n<b style="font-size:1.3em">${formatMoney(each)} تومان</b>\nپرداخت شده است؟`, async () => {
+       item.installmentPaidCount = paidCount + 1;
+       item.paidAmount = item.installmentPaidCount * each;
+       item.status = item.installmentPaidCount >= item.scheduleCount ? 'closed' : 'partial';
+       
+       if(item.status !== 'closed' && item.dueDate) {
+           let [y, m, d] = item.dueDate.split('-').map(Number);
+           m += 1;
+           if (m > 12) { m -= 12; y += 1; }
+           let daysInNextMonth = new Date(y, m, 0).getDate();
+           if (d > daysInNextMonth) d = daysInNextMonth;
+           item.dueDate = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+       }
+
+       await saveRecord(item);
+       showToast('یک قسط کسر شد و سررسید تمدید شد');
+       await render();
+    });
+  } else {
+    const remAmt = Math.max(0, item.amount - item.paidAmount);
+    if(remAmt <= 0) { showToast('این مورد تسویه شده است'); return; }
+    
+    customPrompt('چه مبلغی الان پرداخت می‌کنید؟ (برای تسویه کامل دست نزنید)', formatMoney(remAmt), async (amt) => {
+        if(amt === null) return;
+        const num = Number(String(amt).replace(/,/g, ''));
+        if(!num || num <= 0) return;
+        
+        item.paidAmount = (item.paidAmount || 0) + num;
+        item.status = item.paidAmount >= item.amount ? 'closed' : 'partial';
+        await saveRecord(item);
+        showToast('پرداخت ثبت شد');
+        await render();
+    });
+  }
+}
+
+function openNextcloudSettings() {
+  const savedUrl = localStorage.getItem('nc_url') || 'https://nc.taha.surf';
+  const savedUser = localStorage.getItem('nc_user') || 'saeed';
+  const savedPass = localStorage.getItem('nc_pass') || '';
+
+  openModal(`
+    <div class="modal-head">
+      <div style="font-weight:800;font-size:1.2em">☁️ همگام‌سازی با سرور</div>
+      <button onclick="closeModal()">بستن</button>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+        <label>آدرس سرور</label>
+        <input type="text" id="ncUrl" value="${savedUrl}" dir="ltr">
+        <label>نام کاربری</label>
+        <input type="text" id="ncUser" value="${savedUser}" dir="ltr">
+        <label>رمز عبور (App Password)</label>
+        <input type="password" id="ncPass" value="${savedPass}" dir="ltr">
+    </div>
+    <div class="actions">
+        <button class="primary" onclick="syncToNextcloud('upload')" style="flex:1">آپلود ⬆️</button>
+        <button class="warn" onclick="syncToNextcloud('download')" style="flex:1">دریافت ⬇️</button>
+    </div>
+  `);
+}
+
+async function syncToNextcloud(action) {
+  const url = document.getElementById('ncUrl').value.replace(/\/$/, '');
+  const user = document.getElementById('ncUser').value;
+  const pass = document.getElementById('ncPass').value;
+
+  if(!url || !user || !pass) { showToast('لطفاً اطلاعات را کامل کنید'); return; }
+
+  localStorage.setItem('nc_url', url);
+  localStorage.setItem('nc_user', user);
+  localStorage.setItem('nc_pass', pass);
+
+  const webdavUrl = `${url}/remote.php/webdav/WorkshopFinanceBackup.json`;
+  const authHeader = 'Basic ' + btoa(unescape(encodeURIComponent(user + ':' + pass)));
+
+  try {
+      showToast(action === 'upload' ? 'در حال ارسال...' : 'در حال دریافت...');
+      
+      if (action === 'upload') {
+          const rows = await getAll();
+          const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+          const response = await fetch(webdavUrl, {
+              method: 'PUT',
+              headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload, null, 2)
+          });
+          if(response.ok) {
+             showToast('✅ با موفقیت ذخیره شد!');
+             closeModal();
+          } else { throw new Error('خطا: ' + response.status); }
+      } 
+      else if (action === 'download') {
+          const response = await fetch(webdavUrl, { method: 'GET', headers: { 'Authorization': authHeader } });
+          if(response.ok) {
+              const d = await response.json();
+              const rows = Array.isArray(d) ? d : (d.records || []);
+              for(let x of rows) {
+                  if (x.issueDateEpochDay && !x.issueDate) x.issueDate = new Date(x.issueDateEpochDay * 86400000).toISOString().split('T')[0];
+                  if (x.dueDateEpochDay && !x.dueDate) x.dueDate = new Date(x.dueDateEpochDay * 86400000).toISOString().split('T')[0];
+                  if (x.type === 'installment' && x.scheduleCount > 1 && !x.instEachAmount) x.instEachAmount = Math.round(x.amount / x.scheduleCount);
+                  await saveRecord(x);
+              }
+              await render();
+              showToast('✅ دریافت و جایگزین شد!');
+              closeModal();
+          } else { throw new Error('خطا: ' + response.status); }
+      }
+  } catch (error) {
+      alert('خطا در اتصال.\nدلیل: ' + error.message);
+  }
+}
+
+async function initDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = () => { db = req.result; resolve(db); };
+  });
+}
+
+function tx(storeName=STORE, mode='readonly'){ return db.transaction(storeName, mode).objectStore(storeName); }
+function getAll(){ return new Promise((res,rej)=>{ const r = tx(STORE).getAll(); r.onsuccess=()=>res(r.result||[]); }); }
+function getRecord(id){ return new Promise((res,rej)=>{ const r = tx(STORE).get(id); r.onsuccess=()=>res(r.result); }); }
+function saveRecord(record){ return new Promise((res,rej)=>{ const r = tx(STORE, 'readwrite').put(record); r.onsuccess=()=>res(true); }); }
+async function softDeleteRecord(id){ const r=await getRecord(id); if(r){ r.deleted=true; await saveRecord(r); } }
+
+function sortRecords(arr){
+  const sortBy = document.getElementById('sortBy').value;
+  return arr.sort((a,b)=>{
+    if (sortBy === 'dueAsc') return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
+    if (sortBy === 'updatedDesc') return (b.updatedAt||'').localeCompare(a.updatedAt||'');
+    if (sortBy === 'amountDesc') return (b.amount||0)-(a.amount||0);
+    return (a.amount||0)-(b.amount||0);
+  });
+}
+
+function isOverdue(r){
+  if (r.status === 'closed') return false;
+  return r.dueDate && r.dueDate < todayISO();
+}
+
+function filtered(arr){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  let out = arr.filter(r=> !r.deleted).filter(r=>{
+    const searchHit = !q || [r.title,r.counterparty,r.notes].join(' ').toLowerCase().includes(q);
+    const tabHit = currentTab === 'all' || (currentTab === 'overdue' ? isOverdue(r) : r.type === currentTab);
+    const statusHit = currentStatus === 'all-status' || r.status === currentStatus;
+    return searchHit && tabHit && statusHit;
+  });
+  return sortRecords(out);
+}
+
+function renderList(rows){
+  const el = document.getElementById('list');
+  if (!rows.length) { el.innerHTML = `<div class="card empty">موردی پیدا نشد.</div>`; return; }
+  
+  el.innerHTML = rows.map(r => {
+    let remaining = Math.max(0, Number(r.amount||0) - Number(r.paidAmount||0));
+    let instText = '';
+    let notesText = r.notes ? `<div style="margin-top:8px; font-size:0.85em; color:#93c5fd; background: rgba(147, 197, 253, 0.1); padding: 6px 10px; border-radius: 8px;">📝 ${escapeHtml(r.notes)}</div>` : '';
+    
+    if(r.type === 'installment' && Number(r.scheduleCount) > 1) {
+      let each = r.instEachAmount || (r.amount / r.scheduleCount);
+      let paid = r.installmentPaidCount || 0;
+      if (paid === 0 && r.paidAmount > 0 && each > 0) { paid = Math.round(r.paidAmount / each); }
+      instText = `<span class="pill warn">پرداخت شده: ${paid} از ${r.scheduleCount} قسط</span>`;
+    }
+
+    return `
+      <div class="item">
+        <div class="item-top">
+          <div>
+            <div class="title">${escapeHtml(r.title)}</div>
+            <div class="meta">${escapeHtml(r.counterparty||'—')}</div>
+            ${notesText}
+          </div>
+          <div class="amount-display">
+            <div>${formatMoney(r.amount)}</div>
+            <div class="small muted">مانده: ${formatMoney(remaining)}</div>
+          </div>
+        </div>
+        <div class="actions">
+          <span class="pill">${typeLabels[r.type]||r.type}</span>
+          ${r.status==='closed'?'<span class="pill good">تسویه</span>':(isOverdue(r)?'<span class="pill bad">عقب‌افتاده</span>':'')}
+          <span class="pill">سررسید: ${isoToJalaliText(r.dueDate)}</span>
+          ${instText}
+        </div>
+        <div class="actions">
+          <button class="good" onclick="processPayment('${r.id}')">${r.type==='installment'?'پرداخت ۱ قسط':'پرداخت / تسویه'}</button>
+          <button onclick="editRecord('${r.id}')">ویرایش</button>
+          <button class="bad" onclick="removeRecord('${r.id}')">حذف</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function render(){
+  const rows = await getAll();
+  let debt = 0, overdueDebt = 0, overdueInst = 0;
+  let alerts = [];
+  const today = todayISO();
+  const next7 = daysFromNow(7);
+
+  rows.filter(r=>!r.deleted && r.status!=='closed').forEach(r=>{
+    const rem = Math.max(0, r.amount - (r.paidAmount||0));
+    if(r.type === 'debt' || r.type === 'installment' || r.type === 'expense') debt += rem;
+    
+    let amtForAlert = rem;
+    if(r.type === 'installment' && r.scheduleCount > 1) { amtForAlert = r.instEachAmount || Math.round(r.amount / r.scheduleCount); }
+
+    if (r.dueDate && r.dueDate < today) {
+       if(r.type === 'debt' || r.type === 'expense') overdueDebt += rem;
+       if(r.type === 'installment') overdueInst += amtForAlert;
+       alerts.push({ ...r, alertType: 'overdue', alertAmt: amtForAlert });
+    } else if (r.dueDate && r.dueDate >= today && r.dueDate <= next7) {
+       alerts.push({ ...r, alertType: 'upcoming', alertAmt: amtForAlert });
+    }
+  });
+  
+  document.getElementById('statDebt').textContent = formatMoney(debt);
+  document.getElementById('statOverdueDebt').textContent = formatMoney(overdueDebt);
+  document.getElementById('statOverdueInst').textContent = formatMoney(overdueInst);
+
+  const remindersWrap = document.getElementById('remindersWrap');
+  if(alerts.length > 0) {
+      alerts.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+      remindersWrap.innerHTML = `
+        <div class="card" style="border: 1px solid var(--warn); background: rgba(245,158,11,0.08); margin-bottom:12px;">
+          <div style="color:var(--warn); font-weight:800; font-size:1.1em; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <span>🔔</span> نیازمند توجه
+          </div>
+          ${alerts.map(r => `
+            <div style="background:var(--bg); border:1px solid #334155; padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:bold; font-size:0.9em; margin-bottom:4px;">
+                  ${escapeHtml(r.title)}
+                  ${r.alertType === 'overdue' ? '<span class="pill bad" style="padding:2px 6px; font-size:0.7em">گذشته</span>' : '<span class="pill warn" style="padding:2px 6px; font-size:0.7em">نزدیک</span>'}
+                </div>
+                <div class="small muted">${typeLabels[r.type]||r.type} • ${isoToJalaliText(r.dueDate)}</div>
+              </div>
+              <div style="font-family:monospace; font-weight:bold; color:var(--text)">${formatMoney(r.alertAmt)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+  } else { remindersWrap.innerHTML = ''; }
+
+  renderList(filtered(rows));
+}
+
+function bindUI(){
+  document.getElementById('addBtn').onclick = ()=>openForm();
+  document.getElementById('fab').onclick = ()=>openForm();
+  document.getElementById('search').oninput = render;
+  document.getElementById('sortBy').onchange = render;
+  document.getElementById('openNcBtn').onclick = () => openNextcloudSettings();
+  
+  document.getElementById('tabs').addEventListener('click', (e)=>{
+    if(e.target.tagName!=='BUTTON') return;
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active'); currentTab = e.target.dataset.tab; render();
+  });
+  
+  document.querySelectorAll('.filters .chip').forEach(btn=>btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filters .chip').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
+  }));
+
+  document.getElementById('backupBtn').onclick = async () => {
+    const rows = await getAll();
+    const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup-${todayISO()}.json`; a.click();
+  };
+
+  document.getElementById('importBtn').onclick = ()=>document.getElementById('importFile').click();
+  document.getElementById('importFile').onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = async ()=>{
+      try {
+        const d = JSON.parse(r.result);
+        const rows = Array.isArray(d) ? d : (d.records || []);
+        for(let x of rows) {
+          if (x.issueDateEpochDay && !x.issueDate) x.issueDate = new Date(x.issueDateEpochDay * 86400000).toISOString().split('T')[0];
+          if (x.dueDateEpochDay && !x.dueDate) x.dueDate = new Date(x.dueDateEpochDay * 86400000).toISOString().split('T')[0];
+          if (x.type === 'installment' && x.scheduleCount > 1 && !x.instEachAmount) x.instEachAmount = Math.round(x.amount / x.scheduleCount);
+          await saveRecord(x);
+        }
+        await render();
+        showToast('با موفقیت بازیابی شد');
+      } catch(err) {
+        alert('فایل بک‌آپ خوانده نشد.');
+      }
+    }; 
+    r.readAsText(f); 
+    e.target.value='';
+  };
+}
+
+initDB().then(()=>{ bindUI(); render(); });
+</script>
+</body>
+</html>
