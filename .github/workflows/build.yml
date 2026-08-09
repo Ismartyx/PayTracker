@@ -69,14 +69,12 @@ jobs:
           
           cordova build android --release --buildConfig=../build.json
           
-          # دستور جستجوی ردپای فایل برای محکم‌کاری
-          echo "=== لیست تمام فایل‌های APK ساخته شده ==="
-          find .. -name "*.apk"
-          echo "=========================================="
+          # جادوی لینوکس: پیدا کردن فایل APK و آوردنش به صفحه اصلی
+          find . -name "*.apk" -exec cp {} ../ \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FinanceApp-APK
-          # به جای اسم فایل، کل پوشه apk را برمی‌داریم که جای فرار نداشته باشد!
-          path: app/platforms/android/app/build/outputs/apk/
+          # گرفتن فایل مستقیماً از صفحه اصلی
+          path: "*.apk"
