@@ -812,33 +812,39 @@ function bindUI(){
     btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
   }));
 
-  // متد اشتراک گذاری بومی اندروید
+  // متد ۱۰۰٪ تضمینی برای بکاپ (کپی مستقیم متن)
   document.getElementById('backupBtn').onclick = async () => {
     const rows = await getAll();
     const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
     const jsonStr = JSON.stringify(payload, null, 2);
-    const blob = new Blob([jsonStr], {type:'application/json'});
-    const fileName = `backup-${todayISO()}.json`;
 
-    if (navigator.canShare) {
-        const file = new File([blob], fileName, { type: "application/json" });
-        try {
-            await navigator.share({
-                files: [file],
-                title: 'بکاپ دفتر مالی',
-                text: 'فایل بکاپ اطلاعات مالی کارگاه'
-            });
-            showToast('✅ منوی اشتراک باز شد');
-        } catch (err) {
-            console.log("Share canceled or failed", err);
-        }
-    } else {
-        const a = document.createElement('a'); 
-        a.href = URL.createObjectURL(blob); 
-        a.download = fileName; 
-        a.click();
-    }
+    openModal(`
+      <div class="modal-head">
+        <div style="font-weight:800;font-size:1.2em;color:var(--accent)">پشتیبان‌گیری دستی</div>
+        <button type="button" onclick="closeModal()">بستن</button>
+      </div>
+      <div style="padding: 10px 0; text-align: center;">
+          <p style="font-size: 0.9em; color: var(--muted); margin-bottom: 10px; line-height: 1.6;">
+              چون اندروید اجازه دانلود فایل را نمی‌دهد، روی دکمه زیر کلیک کنید تا اطلاعات کپی شود. سپس آن را در تلگرام یا یک یادداشت ذخیره (Paste) کنید.
+          </p>
+          <textarea id="backupText" readonly style="width:100%; height:120px; font-family:monospace; font-size:0.75em; direction:ltr; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:12px; padding:8px;">${jsonStr}</textarea>
+      </div>
+      <div style="margin-top: 15px;">
+          <button class="good" style="width:100%; padding:14px; font-size:1.1em;" onclick="
+              const txt = document.getElementById('backupText');
+              txt.select();
+              txt.setSelectionRange(0, 99999);
+              navigator.clipboard.writeText(txt.value).then(() => {
+                  showToast('✅ کپی شد! حالا در جای امنی Paste کنید');
+              }).catch(() => {
+                  document.execCommand('copy');
+                  showToast('✅ کپی شد! حالا در جای امنی Paste کنید');
+              });
+          ">📋 کپی کردن کل اطلاعات</button>
+      </div>
+    `);
   };
+
 
   document.getElementById('importBtn').onclick = ()=>document.getElementById('importFile').click();
   document.getElementById('importFile').onchange = (e)=>{
