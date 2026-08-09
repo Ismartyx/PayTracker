@@ -5,6 +5,10 @@ on:
   push:
     branches: [ main ]
 
+# این بخش به ربات اجازه می‌دهد فایل امضا را در ریپازیتوری شما ذخیره کند
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,19 +30,51 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Build APK
+      - name: Create Permanent Keystore
         run: |
+          if [ ! -f finance.keystore ]; then
+            echo "Generating a new permanent keystore..."
+            keytool -genkey -v -keystore finance.keystore -alias finance -keyalg RSA -keysize 2048 -validity 10000 -storepass financepass -keypass financepass -dname "CN=Workshop Finance"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add finance.keystore
+            git commit -m "Add permanent keystore for updates [skip ci]" || true
+            git push || true
+          else
+            echo "Keystore already exists! Using it to sign the update."
+          fi
+
+      - name: Build Signed APK
+        run: |
+          # ساخت فایل پیکربندی امضا برای ربات سازنده
+          cat <<EOF > build.json
+          {
+            "android": {
+              "release": {
+                "keystore": "../finance.keystore",
+                "storePassword": "financepass",
+                "alias": "finance",
+                "password" : "financepass",
+                "keystoreType": ""
+              }
+            }
+          }
+          EOF
+          
           cordova create app com.kargah.finance "FinanceApp"
           rm -rf app/www/*
           cp index.html app/www/
-          cp icon.png app/
+          cp icon.png app/ || true
           sed -i 's|</widget>|    <icon src="icon.png" />\n</widget>|' app/config.xml
           cd app
           cordova platform add android
-          cordova build android
+          
+          # کامپایل نسخه نهایی (Release) با امضای ثابت
+          cordova build android --release --buildConfig=../build.json
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FinanceApp-APK
-          path: app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          # دریافت نسخه رسمی و ریلیز شده
+          path: app/platforms/android/app/build/outputs/apk/release/app-release.apk
