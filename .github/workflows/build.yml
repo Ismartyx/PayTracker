@@ -45,7 +45,6 @@ jobs:
 
       - name: Build Signed APK
         run: |
-          # استفاده از مسیر مطلق سرور برای جلوگیری از گم شدن فایل امضا
           cat <<EOF > build.json
           {
             "android": {
@@ -74,4 +73,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: FinanceApp-APK
-          path: app/platforms/android/app/build/outputs/apk/release/app-release.apk
+          # جستجوی هوشمند: پیدا کردن فایل APK با هر نامی که موتور اندروید روی آن گذاشته است
+          path: app/**/*.apk
