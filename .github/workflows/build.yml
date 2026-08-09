@@ -45,11 +45,12 @@ jobs:
 
       - name: Build Signed APK
         run: |
+          # استفاده از مسیر مطلق سرور برای جلوگیری از گم شدن فایل امضا
           cat <<EOF > build.json
           {
             "android": {
               "release": {
-                "keystore": "../finance.keystore",
+                "keystore": "$GITHUB_WORKSPACE/finance.keystore",
                 "storePassword": "financepass",
                 "alias": "finance",
                 "password" : "financepass",
