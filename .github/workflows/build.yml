@@ -5,9 +5,6 @@ on:
   push:
     branches: [ main ]
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,36 +26,8 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create Permanent Keystore
+      - name: Build APK
         run: |
-          if [ ! -f finance.keystore ]; then
-            echo "Generating a new permanent keystore..."
-            keytool -genkey -v -keystore finance.keystore -alias finance -keyalg RSA -keysize 2048 -validity 10000 -storepass financepass -keypass financepass -dname "CN=Workshop Finance"
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add finance.keystore
-            git commit -m "Add permanent keystore for updates [skip ci]" || true
-            git push origin HEAD:main || true
-          else
-            echo "Keystore already exists! Using it to sign the update."
-          fi
-
-      - name: Build Signed APK
-        run: |
-          cat <<EOF > build.json
-          {
-            "android": {
-              "release": {
-                "keystore": "$GITHUB_WORKSPACE/finance.keystore",
-                "storePassword": "financepass",
-                "alias": "finance",
-                "password" : "financepass",
-                "keystoreType": ""
-              }
-            }
-          }
-          EOF
-          
           cordova create app com.kargah.finance "FinanceApp"
           rm -rf app/www/*
           cp index.html app/www/
@@ -67,14 +36,14 @@ jobs:
           cd app
           cordova platform add android
           
-          cordova build android --release --buildConfig=../build.json
+          # ساخت نسخه معمولی بدون دردسر امضا
+          cordova build android
           
-          # جادوی لینوکس: پیدا کردن فایل APK و آوردنش به صفحه اصلی
+          # آوردن فایل به صفحه اصلی برای دانلود قطعی
           find . -name "*.apk" -exec cp {} ../ \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: FinanceApp-APK
-          # گرفتن فایل مستقیماً از صفحه اصلی
           path: "*.apk"
