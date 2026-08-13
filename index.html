@@ -709,7 +709,13 @@ function filtered(arr){
   let out = arr.filter(r=> !r.deleted).filter(r=>{
     const searchHit = !q || [r.title,r.counterparty,r.notes,r.invoiceNumber].join(' ').toLowerCase().includes(q);
     const tabHit = currentTab === 'all' || (currentTab === 'overdue' ? isOverdue(r) : r.type === currentTab);
-    const statusHit = currentStatus === 'all-status' || r.status === currentStatus;
+    
+    // منطق اصلاح شده فیلترها (باز = هرچیزی که تسویه کامل نشده باشد)
+    let statusHit = false;
+    if (currentStatus === 'all-status') statusHit = true;
+    else if (currentStatus === 'open') statusHit = (r.status === 'open' || r.status === 'partial');
+    else statusHit = (r.status === currentStatus);
+    
     return searchHit && tabHit && statusHit;
   });
   return sortRecords(out);
@@ -848,7 +854,6 @@ function bindUI(){
     btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
   }));
 
-  // سیستم بکاپ دو مرحله‌ای هوشمند (هیبرید)
   document.getElementById('backupBtn').onclick = async () => {
     const rows = await getAll();
     const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
@@ -858,7 +863,6 @@ function bindUI(){
     try {
         const file = new File([jsonStr], fileName, { type: "application/json" });
         
-        // مرحله اول: تلاش برای باز کردن منوی اشتراک‌گذاری بومی برای ارسال فایل
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 files: [file],
@@ -866,13 +870,12 @@ function bindUI(){
                 text: 'فایل پشتیبان اطلاعات کارگاه'
             });
             showToast('✅ ارسال فایل انجام شد');
-            return; // اگر موفق بود، از تابع خارج می‌شود
+            return; 
         }
     } catch (err) {
         console.log("ارسال فایل مسدود شد:", err);
     }
 
-    // مرحله دوم (جایگزین): اگر سیستم‌عامل فایل را مسدود کرد، سریعاً مودال کپی باز می‌شود
     openModal(`
       <div class="modal-head">
         <div style="font-weight:800;font-size:1.2em;color:var(--accent)">پشتیبان‌گیری دستی</div>
