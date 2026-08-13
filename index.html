@@ -710,7 +710,6 @@ function filtered(arr){
     const searchHit = !q || [r.title,r.counterparty,r.notes,r.invoiceNumber].join(' ').toLowerCase().includes(q);
     const tabHit = currentTab === 'all' || (currentTab === 'overdue' ? isOverdue(r) : r.type === currentTab);
     
-    // منطق اصلاح شده فیلترها (باز = هرچیزی که تسویه کامل نشده باشد)
     let statusHit = false;
     if (currentStatus === 'all-status') statusHit = true;
     else if (currentStatus === 'open') statusHit = (r.status === 'open' || r.status === 'partial');
@@ -854,15 +853,29 @@ function bindUI(){
     btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
   }));
 
+  // متد هوشمند اتصال به افزونه بومی اشتراک‌گذاری
   document.getElementById('backupBtn').onclick = async () => {
     const rows = await getAll();
     const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
     const jsonStr = JSON.stringify(payload, null, 2);
     const fileName = `backup-${todayISO()}.json`;
 
+    // بررسی اینکه آیا افزونه بومی لود شده است (فقط داخل اپلیکیشن اندروید کار می‌کند)
+    if (window.plugins && window.plugins.socialsharing) {
+        // تبدیل دیتای بکاپ به فرمت فایل بومی اندروید
+        const base64Data = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonStr)));
+        window.plugins.socialsharing.share(
+            'فایل پشتیبان اطلاعات مالی کارگاه', // پیام
+            fileName, // نام فایل
+            base64Data, // فایل
+            null
+        );
+        return; 
+    }
+
+    // متد جایگزین اول: استفاده از مرورگر (اگر نسخه تحت وب باشد)
     try {
         const file = new File([jsonStr], fileName, { type: "application/json" });
-        
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({
                 files: [file],
@@ -876,6 +889,7 @@ function bindUI(){
         console.log("ارسال فایل مسدود شد:", err);
     }
 
+    // متد جایگزین دوم (پلن B): باز شدن پنجره دستی اگر دو روش بالا توسط اندروید مسدود شدند
     openModal(`
       <div class="modal-head">
         <div style="font-weight:800;font-size:1.2em;color:var(--accent)">پشتیبان‌گیری دستی</div>
