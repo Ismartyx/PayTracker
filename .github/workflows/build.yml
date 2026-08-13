@@ -34,12 +34,13 @@ jobs:
           cp icon.png app/ || true
           sed -i 's|</widget>|    <icon src="icon.png" />\n</widget>|' app/config.xml
           cd app
-          cordova platform add android
           
-          # ساخت نسخه معمولی بدون دردسر امضا
+          # نصب افزونه بومی برای دور زدن محدودیت‌های اشتراک‌گذاری اندروید
+          cordova plugin add cordova-plugin-x-socialsharing
+          
+          cordova platform add android
           cordova build android
           
-          # آوردن فایل به صفحه اصلی برای دانلود قطعی
           find . -name "*.apk" -exec cp {} ../ \;
 
       - name: Upload APK
