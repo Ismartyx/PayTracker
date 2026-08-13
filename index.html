@@ -192,7 +192,6 @@
     <div class="modal" id="modal"></div>
   </div>
 
-  <!-- مودال نمایش عکس به صورت تمام صفحه -->
   <div class="modal-backdrop" id="imageViewerModal" style="z-index: 10000; align-items: center; justify-content: center;" onclick="this.classList.remove('show')">
       <div style="position: relative; max-width: 95%; max-height: 90vh;">
           <img id="fullSizeImage" style="width: 100%; max-height: 90vh; border-radius: 16px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
@@ -309,7 +308,6 @@ window.showFullImage = function(src) {
     document.getElementById('imageViewerModal').classList.add('show');
 }
 
-// سیستم مدیریت چندین عکس
 window.currentImagesArray = [];
 
 window.processImages = function(event) {
@@ -343,7 +341,6 @@ window.processImages = function(event) {
         };
         reader.readAsDataURL(file);
     }
-    // خالی کردن اینپوت تا در صورت نیاز دوباره بتوان عکس اضافه کرد
     event.target.value = '';
 };
 
@@ -465,7 +462,6 @@ function openForm(record=null){
     scheduleCount: 1, instEachAmount: '', installmentPaidCount: 0
   };
 
-  // دریافت عکس‌ها برای حالت ویرایش (پشتیبانی از فرمت قدیم و جدید)
   window.currentImagesArray = r.images ? [...r.images] : (r.image ? [r.image] : []);
 
   if(r.type === 'installment' && !r.instEachAmount && r.scheduleCount > 1) {
@@ -550,7 +546,6 @@ function openForm(record=null){
     </form>
   `);
 
-  // نمایش عکس‌های قبلی در صورت وجود
   setTimeout(window.renderImagePreviews, 50);
 
   const typeField = document.getElementById('typeField');
@@ -606,7 +601,6 @@ function openForm(record=null){
       data.instEachAmount = Number(instEachAmount.value);
     }
     
-    // جایگذاری آرایه عکس‌ها به جای یک عکس
     data.images = window.currentImagesArray;
     
     if(!record) data.id = uid();
@@ -731,7 +725,6 @@ function renderList(rows){
     let notesText = r.notes ? `<div style="margin-top:8px; font-size:0.85em; color:#93c5fd; background: rgba(147, 197, 253, 0.1); padding: 6px 10px; border-radius: 8px;">📝 ${escapeHtml(r.notes)}</div>` : '';
     let invHTML = r.invoiceNumber ? `<div style="margin-top:6px; font-size:0.85em; color:var(--accent); font-weight:bold; background:rgba(56,189,248,0.1); display:inline-block; padding:2px 8px; border-radius:6px; border:1px solid rgba(56,189,248,0.3);">🧾 فاکتور: ${escapeHtml(r.invoiceNumber)}</div>` : '';
     
-    // پردازش نمایش عکس‌ها در صفحه اول
     let imgHTML = '';
     let imagesList = r.images ? r.images : (r.image ? [r.image] : []);
     if(imagesList.length > 0) {
@@ -855,19 +848,39 @@ function bindUI(){
     btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
   }));
 
+  // سیستم بکاپ دو مرحله‌ای هوشمند (هیبرید)
   document.getElementById('backupBtn').onclick = async () => {
     const rows = await getAll();
     const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
     const jsonStr = JSON.stringify(payload, null, 2);
+    const fileName = `backup-${todayISO()}.json`;
 
+    try {
+        const file = new File([jsonStr], fileName, { type: "application/json" });
+        
+        // مرحله اول: تلاش برای باز کردن منوی اشتراک‌گذاری بومی برای ارسال فایل
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'بکاپ دفتر مالی',
+                text: 'فایل پشتیبان اطلاعات کارگاه'
+            });
+            showToast('✅ ارسال فایل انجام شد');
+            return; // اگر موفق بود، از تابع خارج می‌شود
+        }
+    } catch (err) {
+        console.log("ارسال فایل مسدود شد:", err);
+    }
+
+    // مرحله دوم (جایگزین): اگر سیستم‌عامل فایل را مسدود کرد، سریعاً مودال کپی باز می‌شود
     openModal(`
       <div class="modal-head">
         <div style="font-weight:800;font-size:1.2em;color:var(--accent)">پشتیبان‌گیری دستی</div>
         <button type="button" onclick="closeModal()">بستن</button>
       </div>
       <div style="padding: 10px 0; text-align: center;">
-          <p style="font-size: 0.9em; color: var(--muted); margin-bottom: 10px; line-height: 1.6;">
-              چون اندروید اجازه دانلود فایل را نمی‌دهد، روی دکمه زیر کلیک کنید تا اطلاعات کپی شود. سپس آن را در تلگرام یا یک یادداشت ذخیره (Paste) کنید.
+          <p style="font-size: 0.9em; color: var(--warn); margin-bottom: 10px; line-height: 1.6;">
+              سیستم‌عامل گوشی اجازه ارسال مستقیم فایل را نداد. لطفاً روی دکمه زیر کلیک کنید تا اطلاعات کپی شود. سپس آن را در تلگرام یا یک یادداشت ذخیره (Paste) کنید.
           </p>
           <textarea id="backupText" readonly style="width:100%; height:120px; font-family:monospace; font-size:0.75em; direction:ltr; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:12px; padding:8px;">${jsonStr}</textarea>
       </div>
@@ -875,7 +888,7 @@ function bindUI(){
           <button class="good" style="width:100%; padding:14px; font-size:1.1em;" onclick="
               const txt = document.getElementById('backupText');
               txt.select();
-              txt.setSelectionRange(0, 99999);
+              txt.setSelectionRange(0, 999999);
               navigator.clipboard.writeText(txt.value).then(() => {
                   showToast('✅ کپی شد! حالا در جای امنی Paste کنید');
               }).catch(() => {
