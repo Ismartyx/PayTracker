@@ -943,7 +943,37 @@ function bindUI(){
     e.target.value='';
   };
 }
+// --- سیستم منوی میانبرهای آیکون برنامه (App Shortcuts) ---
+  document.addEventListener('deviceready', function() {
+      if (window.ThreeDeeTouch) {
+          // ۱. ساختن گزینه‌های منو
+          window.ThreeDeeTouch.configureQuickActions([
+              {
+                  type: 'new_record',
+                  title: 'ثبت جدید',
+                  subtitle: 'فاکتور، بدهی یا طلب',
+                  iconType: 'Compose' // آیکون مداد
+              },
+              {
+                  type: 'search_record',
+                  title: 'جستجو در حساب‌ها',
+                  iconType: 'Search' // آیکون ذره‌بین
+              }
+          ]);
 
+          // ۲. دستوراتِ بعد از کلیک کردن روی هر گزینه
+          window.ThreeDeeTouch.onHomeIconPressed = function (payload) {
+              setTimeout(() => {
+                  if (payload.type === 'new_record') {
+                      openForm(); // باز کردن فرم ثبت
+                  } else if (payload.type === 'search_record') {
+                      document.getElementById('search').focus(); // رفتن به کادر جستجو
+                  }
+              }, 400); // یک مکث کوتاه برای لود شدن کامل صفحه
+          };
+      }
+  });
+  // --------------------------------------------------------
 initDB().then(()=>{ bindUI(); render(); });
 </script>
 </body>
