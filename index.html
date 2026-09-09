@@ -820,7 +820,8 @@ async function render(){
             <span>🔔</span> نیازمند توجه
           </div>
           ${alerts.map(r => `
-            <div style="background:var(--bg); border:1px solid #334155; padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <!-- اضافه شدن قابلیت کلیک و باز شدن پنجره ویرایش -->
+            <div onclick="editRecord('${r.id}')" style="cursor:pointer; background:var(--bg); border:1px solid #334155; padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <div style="font-weight:bold; font-size:0.9em; margin-bottom:4px;">
                   ${escapeHtml(r.title)}
