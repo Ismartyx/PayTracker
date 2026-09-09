@@ -16,7 +16,13 @@
       --warn: #f59e0b; --bad: #ef4444; --chip: #1e293b;
       --fz: 16px;
     }
-    * { box-sizing: border-box; touch-action: manipulation; -webkit-user-select: none; user-select: none; } 
+    * { 
+    box-sizing: border-box; 
+    touch-action: manipulation; 
+    -webkit-user-select: none; 
+    user-select: none; 
+    -webkit-tap-highlight-color: transparent; 
+} 
     input, textarea, select { -webkit-user-select: auto; user-select: auto; }
     html, body { 
       margin: 0; padding: 0; background: linear-gradient(180deg, #08101d 0%, #0b1220 100%); 
