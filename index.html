@@ -951,35 +951,58 @@ function bindUI(){
   };
 }
 // --- سیستم منوی میانبرهای آیکون برنامه (App Shortcuts) ---
+// --- سیستم منوی میانبرهای آیکون برنامه (تخصصی اندروید) ---
   document.addEventListener('deviceready', function() {
-      if (window.ThreeDeeTouch) {
+      if (window.plugins && window.plugins.Shortcuts) {
           // ۱. ساختن گزینه‌های منو
-          window.ThreeDeeTouch.configureQuickActions([
-              {
-                  type: 'new_record',
-                  title: 'ثبت جدید',
-                  subtitle: 'فاکتور، بدهی یا طلب',
-                  iconType: 'Compose' // آیکون مداد
-              },
-              {
-                  type: 'search_record',
-                  title: 'جستجو در حساب‌ها',
-                  iconType: 'Search' // آیکون ذره‌بین
+          const shortcutNew = {
+              id: 'new_record',
+              shortLabel: 'ثبت جدید',
+              longLabel: 'ثبت فاکتور یا بدهی',
+              intent: {
+                  action: 'android.intent.action.RUN',
+                  flags: 67108864, // پاک کردن صفحات اضافی از حافظه
+                  extras: { 'shortcut_action': 'new_record' }
               }
-          ]);
-
-          // ۲. دستوراتِ بعد از کلیک کردن روی هر گزینه
-          window.ThreeDeeTouch.onHomeIconPressed = function (payload) {
-              setTimeout(() => {
-                  if (payload.type === 'new_record') {
-                      openForm(); // باز کردن فرم ثبت
-                  } else if (payload.type === 'search_record') {
-                      document.getElementById('search').focus(); // رفتن به کادر جستجو
-                  }
-              }, 400); // یک مکث کوتاه برای لود شدن کامل صفحه
           };
+          const shortcutSearch = {
+              id: 'search_record',
+              shortLabel: 'جستجو',
+              longLabel: 'جستجو در حساب‌ها',
+              intent: {
+                  action: 'android.intent.action.RUN',
+                  flags: 67108864,
+                  extras: { 'shortcut_action': 'search_record' }
+              }
+          };
+
+          // اضافه کردن منوها به هسته اندروید
+          window.plugins.Shortcuts.supportsDynamic(function(supported) {
+              if (supported) {
+                  window.plugins.Shortcuts.setDynamic([shortcutNew, shortcutSearch], function(){}, function(err){});
+              }
+          });
+
+          // ۲. انجام عملیات وقتی روی هر منو کلیک شد
+          function handleShortcut(intent) {
+              if (intent && intent.extras && intent.extras.shortcut_action) {
+                  setTimeout(() => {
+                      if (intent.extras.shortcut_action === 'new_record') {
+                          openForm();
+                      } else if (intent.extras.shortcut_action === 'search_record') {
+                          document.getElementById('search').focus();
+                      }
+                  }, 400); // مکث کوتاه برای لود شدن رابط کاربری
+              }
+          }
+
+          // بررسی کلیک هنگام اجرای اولیه برنامه
+          window.plugins.Shortcuts.getIntent(handleShortcut);
+          // بررسی کلیک وقتی برنامه از قبل در پس‌زمینه باز بوده
+          window.plugins.Shortcuts.onNewIntent(handleShortcut);
       }
   });
+  // --------------------------------------------------------
   // --------------------------------------------------------
 initDB().then(()=>{ bindUI(); render(); });
 </script>
