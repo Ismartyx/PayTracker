@@ -37,6 +37,9 @@ jobs:
           
           # نصب افزونه بومی برای دور زدن محدودیت‌های اشتراک‌گذاری اندروید
           cordova plugin add cordova-plugin-x-socialsharing
+
+          # افزونه جدید برای منوی میانبرهای آیکون برنامه
+          cordova plugin add cordova-plugin-3dtouch
           
           cordova platform add android
           cordova build android
