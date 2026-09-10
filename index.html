@@ -548,8 +548,9 @@ function openForm(record=null){
       <label>یادداشت</label>
       <textarea name="notes">${escapeHtml(r.notes||'')}</textarea>
       
-      <div class="actions" style="margin-top:16px">
-        <button class="primary" type="submit" style="flex:1">ذخیره اطلاعات</button>
+     <div class="actions" style="margin-top:16px; display: flex; gap: 8px;">
+        ${record && r.status !== 'closed' ? `<button type="button" class="good" style="flex:1" onclick="closeModal(); setTimeout(() => processPayment('${r.id}'), 150);">💳 ثبت پرداخت</button>` : ''}
+        <button class="primary" type="submit" style="${record && r.status !== 'closed' ? 'flex:1.5' : 'flex:1'}">ذخیره اطلاعات</button>
       </div>
     </form>
   `);
@@ -953,6 +954,23 @@ function bindUI(){
 // --- سیستم منوی میانبرهای آیکون برنامه (App Shortcuts) ---
 // --- سیستم منوی میانبرهای آیکون برنامه (تخصصی اندروید) ---
   document.addEventListener('deviceready', function() {
+
+    document.addEventListener("backbutton", function (e) {
+          const imageViewer = document.getElementById('imageViewerModal');
+          const picker = document.getElementById('datePickerOverlay');
+          const backdrop = document.getElementById('backdrop');
+
+          if (imageViewer && imageViewer.classList.contains('show')) {
+              imageViewer.classList.remove('show');
+          } else if (picker) {
+              picker.remove();
+          } else if (backdrop && backdrop.classList.contains('show')) {
+              closeModal(); // اگر فرم یا پنجره‌ای باز است، فقط آن را ببند
+          } else {
+              navigator.app.exitApp(); // اگر در صفحه اصلی بودیم، از برنامه خارج شو
+          }
+      }, false);
+    
       if (window.plugins && window.plugins.Shortcuts) {
           // ۱. ساختن گزینه‌های منو
           const shortcutNew = {
