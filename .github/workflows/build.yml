@@ -33,12 +33,12 @@ jobs:
           cp index.html app/www/
           cp icon.png app/ || true
           
-          # تنظیم آیکون و باز کردن دسترسی ارتباط مستقیم با سرور نکست‌کلاد
-          sed -i 's|</widget>|    <icon src="icon.png" />\n    <access origin="*" />\n    <preference name="AndroidInsecureFileModeEnabled" value="true" />\n</widget>|' app/config.xml
+          sed -i 's|</widget>|    <icon src="icon.png" />\n    <access origin="*" />\n    <allow-navigation href="*" />\n    <preference name="AndroidInsecureFileModeEnabled" value="true" />\n</widget>|' app/config.xml
           
           cd app
           cordova plugin add cordova-plugin-x-socialsharing
           cordova plugin add cordova-plugin-shortcuts-android
+          cordova plugin add cordova-plugin-advanced-http
           
           cordova platform add android
           cordova build android
