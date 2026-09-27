@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="icon" type="image/png" href="icon.png" />
   <link rel="apple-touch-icon" href="icon.png" />
-  <title>دفتر مالی کارگاه</title>
+  <title>دفتر مالی</title>
   <style>
     :root {
       --bg: #0b1220; --panel: #111827; --panel2: #0f172a; --line: #243041; 
@@ -31,10 +31,10 @@
       font-size: var(--fz); -webkit-font-smoothing: antialiased; overscroll-behavior-y: none;
     }
     body { min-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 12px 90px; transform: translateZ(0); }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 12px 90px; }
     
     .top { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .brand { font-weight: 800; font-size: 1.1em; }
+    .brand { font-weight: 800; font-size: 1.15em; }
     .sub { color: var(--muted); font-size: 0.72em; margin-top: 3px; }
     .header-actions { display: flex; gap: 6px; align-items: center; }
     .font-btn { background: var(--chip); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 7px 10px; cursor: pointer; font-weight: bold; font-size: 0.85em; }
@@ -44,7 +44,7 @@
     .top-backup-btn.nc-err { background: rgba(239,68,68,0.2); border-color: var(--bad); color: #fca5a5; }
     
     .grid { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; }
-    .card { background: rgba(17,24,39,.92); border: 1px solid var(--line); border-radius: 18px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); transform: translateZ(0); }
+    .card { background: rgba(17,24,39,.92); border: 1px solid var(--line); border-radius: 18px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
     .stat { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
     .stat .label { color: var(--muted); font-size: 0.85em; font-weight: bold; margin: 0; }
     .stat .value { font-size: 1.2em; font-weight: 800; margin: 0; white-space: nowrap; font-family: monospace; }
@@ -56,15 +56,39 @@
     button.bad { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; }
     button:active { transform: scale(.97); }
     
-    input, select, textarea { width: 100%; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: var(--text); padding: 10px 12px; font-size: 0.92em; outline: none; font-family: inherit; }
+    input, select, textarea { width: 100%; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: var(--text); padding: 10px 12px; font-size: 0.9em; outline: none; font-family: inherit; }
     input[type=number] { font-family: monospace; direction: ltr; text-align: left; }
     textarea { min-height: 84px; resize: vertical; }
     input[readonly], input:disabled { background: #1e293b; color: #94a3b8; border-color: #0f172a; }
     label { display: block; font-size: 0.78em; color: var(--muted); margin: 10px 0 5px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* استایل دراپ‌داون ظریف و بازشو دقیقاً زیر فیلد */
+    .custom-dd { position: relative; width: 100%; }
+    .custom-dd-trigger {
+      width: 100%; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: var(--text);
+      padding: 10px 12px; font-size: 0.85em; font-weight: 600; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .custom-dd.open .custom-dd-trigger { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56,189,248,0.15); }
+    .custom-dd-arrow { font-size: 0.75em; color: var(--muted); transition: transform 0.2s; }
+    .custom-dd.open .custom-dd-arrow { transform: rotate(180deg); color: var(--accent); }
+    .custom-dd-menu {
+      position: absolute; top: calc(100% + 5px); right: 0; left: 0; background: #111827;
+      border: 1px solid #334155; border-radius: 12px; padding: 4px; z-index: 90;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.65); display: none; max-height: 230px; overflow-y: auto;
+    }
+    .custom-dd.open .custom-dd-menu { display: block; animation: ddFade 0.14s ease-out; }
+    @keyframes ddFade { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .custom-dd-item {
+      padding: 8px 10px; border-radius: 8px; font-size: 0.82em; color: var(--text);
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    }
+    .custom-dd-item:active, .custom-dd-item:hover { background: #1e293b; }
+    .custom-dd-item.selected { background: rgba(56,189,248,0.15); color: var(--accent); font-weight: 800; }
     
     .list { display: flex; flex-direction: column; gap: 10px; }
-    .item { background: rgba(15,23,42,.95); border: 1px solid var(--line); border-radius: 18px; padding: 12px; transform: translateZ(0); }
+    .item { background: rgba(15,23,42,.95); border: 1px solid var(--line); border-radius: 18px; padding: 12px; }
     .item-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
     .title { font-weight: 800; font-size: 1em; }
     .meta { font-size: 0.8em; color: var(--muted); margin-top: 4px; line-height: 1.7; }
@@ -108,7 +132,7 @@
     .fab { position: fixed; bottom: 18px; left: 18px; z-index: 50; box-shadow: 0 10px 24px rgba(0,0,0,.45); padding: 13px 18px; font-size: 0.95em; }
     
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
-    .modal { width: min(100%, 760px); max-height: 90vh; overflow-y: auto; background: #0f172a; border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid #243041; padding: 16px; -webkit-overflow-scrolling: touch; transform: translateZ(0); }
+    .modal { width: min(100%, 760px); max-height: 90vh; overflow-y: auto; background: #0f172a; border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid #243041; padding: 16px; -webkit-overflow-scrolling: touch; }
     .modal.show, .modal-backdrop.show { display: flex; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
     
     @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -123,7 +147,7 @@
 
     .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
     .small { font-size: 0.75em; }
-    .toast { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 200; display: none; }
+    .toast { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 500; display: none; }
     .toast.show { display: block; animation: fadeIn 0.3s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .toast .card { padding: 12px 14px; text-align: center; background: #22c55e; color: #fff; font-weight: bold; border: none; }
@@ -153,7 +177,7 @@
             <polygon points="85,47 70,59 70,82 85,72" />
           </svg>
       </div>
-      <h1 style="color: white; margin: 0; font-size: 1.6em; font-weight: 800; letter-spacing: -0.5px;">دفتر مالی کارگاه</h1>
+      <h1 style="color: white; margin: 0; font-size: 1.6em; font-weight: 800; letter-spacing: -0.5px;">دفتر مالی</h1>
       <p style="color: #94a3b8; font-size: 0.9em; margin-top: 8px;">مدیریت هوشمند حساب‌ها</p>
       <div style="margin-top: 36px; width: 34px; height: 34px; border: 3px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: splashSpin 0.8s linear infinite;"></div>
   </div>
@@ -164,10 +188,9 @@
   <div class="toast" id="toast"><div class="card" id="toastText"></div></div>
   <div class="wrap">
     
-    <!-- هدر خلوت با دکمه یکپارچه بکاپ که در صورت اتصال به سرور سبز می‌شود -->
     <div class="top">
       <div>
-        <div class="brand">دفتر مالی کارگاه</div>
+        <div class="brand">دفتر مالی</div>
         <div class="sub" id="ncStatusText">مدیریت هوشمند حساب‌ها</div>
       </div>
       <div class="header-actions">
@@ -196,45 +219,66 @@
       </div>
     </div>
 
+    <!-- کادر هوشمند یادآوری سررسیدهای نزدیک یا گذشته -->
     <div id="remindersWrap"></div>
+    
+    <!-- رادار و تقویم ماهانه -->
     <div id="monthlyRadarWrap" style="margin-bottom: 12px;"></div>
 
-    <!-- کارت یکپارچه و خلوت برای فیلترها، جستجو و مرتب‌سازی -->
-    <div class="card" style="margin-bottom: 12px; padding: 10px 12px;">
+    <!-- فیلترها با دراپ‌داون ظریفِ بازشو دقیقاً زیر هر فیلد -->
+    <div class="card" style="margin-bottom: 12px; padding: 10px 12px; position: relative; z-index: 40;">
       <div class="row" style="margin-bottom: 8px;">
         <div>
           <div class="small muted" style="margin-bottom: 4px;">نوع تراکنش</div>
-          <select id="typeSelect">
-            <option value="all">📂 همه موارد</option>
-            <option value="debt">🔴 بدهی</option>
-            <option value="installment">🟣 قسط</option>
-            <option value="cheque">🟠 چک</option>
-            <option value="expense">🔵 هزینه ثابت</option>
-            <option value="receivable">🟢 طلب</option>
-            <option value="overdue">⚠️ عقب‌افتاده</option>
-          </select>
+          <div class="custom-dd" id="ddType">
+            <div class="custom-dd-trigger" onclick="toggleCustomDD('ddType', event)">
+              <span id="ddTypeLabel">📂 همه موارد</span>
+              <span class="custom-dd-arrow">▾</span>
+            </div>
+            <div class="custom-dd-menu">
+              <div class="custom-dd-item selected" onclick="selectFilterDD('type', 'all', '📂 همه موارد', this)">📂 همه موارد</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'debt', '🔴 بدهی', this)">🔴 بدهی</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'installment', '🟣 قسط', this)">🟣 قسط</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'cheque', '🟠 چک', this)">🟠 چک</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'expense', '🔵 هزینه ثابت', this)">🔵 هزینه ثابت</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'receivable', '🟢 طلب', this)">🟢 طلب</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'overdue', '⚠️ عقب‌افتاده', this)">⚠️ عقب‌افتاده</div>
+            </div>
+          </div>
         </div>
         <div>
           <div class="small muted" style="margin-bottom: 4px;">وضعیت</div>
-          <select id="statusSelect">
-            <option value="open">⏳ باز (تسویه نشده)</option>
-            <option value="partial">🌗 بخشی پرداخت شده</option>
-            <option value="closed">✅ تسویه شده</option>
-            <option value="all-status">📋 همه وضعیت‌ها</option>
-          </select>
+          <div class="custom-dd" id="ddStatus">
+            <div class="custom-dd-trigger" onclick="toggleCustomDD('ddStatus', event)">
+              <span id="ddStatusLabel">⏳ باز (تسویه نشده)</span>
+              <span class="custom-dd-arrow">▾</span>
+            </div>
+            <div class="custom-dd-menu">
+              <div class="custom-dd-item selected" onclick="selectFilterDD('status', 'open', '⏳ باز (تسویه نشده)', this)">⏳ باز (تسویه نشده)</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('status', 'partial', '🌗 بخشی پرداخت شده', this)">🌗 بخشی پرداخت شده</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('status', 'closed', '✅ تسویه شده', this)">✅ تسویه شده</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('status', 'all-status', '📋 همه وضعیت‌ها', this)">📋 همه وضعیت‌ها</div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="row" style="align-items:center;">
         <div>
-          <input id="search" placeholder="🔍 جستجو (نام، شرح...)" />
+          <input id="search" placeholder="🔍 جستجو..." />
         </div>
         <div>
-          <select id="sortBy">
-            <option value="dueAsc">⇅ سررسید نزدیک‌تر</option>
-            <option value="updatedDesc">⇅ آخرین تغییر</option>
-            <option value="amountDesc">⇅ مبلغ بیشتر</option>
-            <option value="amountAsc">⇅ مبلغ کمتر</option>
-          </select>
+          <div class="custom-dd" id="ddSort">
+            <div class="custom-dd-trigger" onclick="toggleCustomDD('ddSort', event)">
+              <span id="ddSortLabel">⇅ سررسید نزدیک‌تر</span>
+              <span class="custom-dd-arrow">▾</span>
+            </div>
+            <div class="custom-dd-menu">
+              <div class="custom-dd-item selected" onclick="selectFilterDD('sort', 'dueAsc', '⇅ سررسید نزدیک‌تر', this)">⇅ سررسید نزدیک‌تر</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('sort', 'updatedDesc', '⇅ آخرین تغییر', this)">⇅ آخرین تغییر</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('sort', 'amountDesc', '⇅ مبلغ بیشتر', this)">⇅ مبلغ بیشتر</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('sort', 'amountAsc', '⇅ مبلغ کمتر', this)">⇅ مبلغ کمتر</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -275,6 +319,41 @@ const STORE = 'records';
 let db;
 let currentTab = 'all';
 let currentStatus = 'open';
+let currentSort = 'dueAsc';
+
+// مدیریت دراپ‌داون‌های ظریف زیر فیلد
+window.toggleCustomDD = function(id, ev) {
+  if (ev) ev.stopPropagation();
+  const el = document.getElementById(id);
+  if (!el) return;
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.custom-dd.open').forEach(d => d.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+};
+
+window.selectFilterDD = function(kind, val, label, itemEl) {
+  if (kind === 'type') {
+    currentTab = val;
+    document.getElementById('ddTypeLabel').textContent = label;
+  } else if (kind === 'status') {
+    currentStatus = val;
+    document.getElementById('ddStatusLabel').textContent = label;
+  } else if (kind === 'sort') {
+    currentSort = val;
+    document.getElementById('ddSortLabel').textContent = label;
+  }
+  const parent = itemEl.closest('.custom-dd');
+  if (parent) {
+    parent.querySelectorAll('.custom-dd-item').forEach(i => i.classList.remove('selected'));
+    itemEl.classList.add('selected');
+    parent.classList.remove('open');
+  }
+  render();
+};
+
+document.addEventListener('click', function() {
+  document.querySelectorAll('.custom-dd.open').forEach(d => d.classList.remove('open'));
+});
 
 const formatMoney = (n) => (Number(n||0)).toLocaleString('en-US');
 const todayISO = () => new Date().toISOString().slice(0,10);
@@ -350,12 +429,22 @@ const typeColors = {
 function showToast(msg){
   const t = document.getElementById('toast');
   document.getElementById('toastText').innerHTML = msg;
-  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2300);
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-// --- مرکز یکپارچه بکاپ (هم دستی/فایل و هم سرور نکست‌کلاد) ---
+// --- مرکز یکپارچه بکاپ و نکست‌کلاد ---
 function getNcConfig() {
   try { return JSON.parse(localStorage.getItem('ncConfig') || '{}'); } catch(e) { return {}; }
+}
+
+function updateModalNcFeedback(msg, isError = false) {
+  const box = document.getElementById('ncModalFeedback');
+  if (!box) return;
+  box.style.display = 'block';
+  box.style.background = isError ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)';
+  box.style.borderColor = isError ? '#ef4444' : '#22c55e';
+  box.style.color = isError ? '#fca5a5' : '#86efac';
+  box.innerHTML = msg;
 }
 
 function setNcStatus(state, text) {
@@ -374,8 +463,11 @@ function setNcStatus(state, text) {
 function buildWebdavUrl(cfg) {
   let base = (cfg.url || '').trim().replace(/\/+$/, '');
   if (base && !/^https?:\/\//i.test(base)) base = 'https://' + base;
+  // پاکسازی لینک اگر کاربر آدرس صفحه وب نکست‌کلاد را کپی کرده باشد
+  if (base.includes('/index.php')) base = base.split('/index.php')[0];
+  if (base.includes('/apps/')) base = base.split('/apps/')[0];
   let user = encodeURIComponent((cfg.user || '').trim());
-  let file = (cfg.filename || 'WorkshopFinance_Backup.json').trim().replace(/^\/+/, '');
+  let file = (cfg.filename || 'DaftarMali_Backup.json').trim().replace(/^\/+/, '');
   if (base.includes('/remote.php/')) {
     return `${base}/${file}`;
   }
@@ -393,31 +485,38 @@ function triggerAutoBackup() {
   }, 1200);
 }
 
-// ارسال درخواست WebDAV سازگار با پلاگین بومی و XHR
 function webdavRequest(method, url, authHeader, bodyStr) {
   return new Promise((resolve, reject) => {
     if (window.cordova && window.cordova.plugin && window.cordova.plugin.http) {
+      try { window.cordova.plugin.http.setServerTrustMode('nocheck', function(){}, function(){}); } catch(e){}
       window.cordova.plugin.http.setDataSerializer('utf8');
       const options = {
         method: method.toLowerCase(),
+        timeout: 15.0,
         headers: { 'Authorization': authHeader, 'Content-Type': 'application/json; charset=utf-8' }
       };
       if (bodyStr) options.data = bodyStr;
       window.cordova.plugin.http.sendRequest(url, options, function(resp) {
         resolve({ ok: resp.status >= 200 && resp.status < 300, status: resp.status, text: resp.data });
       }, function(err) {
-        reject(err);
+        if (err && err.status) {
+          resolve({ ok: false, status: err.status, text: err.error || '' });
+        } else {
+          reject(new Error((err && err.error) ? err.error : 'خطای شبکه در اتصال به سرور'));
+        }
       });
       return;
     }
     const xhr = new XMLHttpRequest();
     xhr.open(method, url, true);
+    xhr.timeout = 12000;
     xhr.setRequestHeader('Authorization', authHeader);
     if (bodyStr) xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
     xhr.onload = function() {
       resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, text: xhr.responseText });
     };
-    xhr.onerror = function() { reject(new Error('Network/CORS error')); };
+    xhr.ontimeout = function() { reject(new Error('زمان اتصال به سرور به پایان رسید (Timeout)')); };
+    xhr.onerror = function() { reject(new Error('مسدود شدن توسط مرورگر (CORS) یا عدم دسترسی به آدرس سرور')); };
     xhr.send(bodyStr || null);
   });
 }
@@ -425,31 +524,46 @@ function webdavRequest(method, url, authHeader, bodyStr) {
 window.uploadToNextcloud = async function(silent = false) {
   const cfg = getNcConfig();
   if (!cfg.url || !cfg.user || !cfg.pass) {
-    if (!silent) showToast('ابتدا آدرس و رمز نکست‌کلاد را وارد کنید');
+    if (!silent) {
+      updateModalNcFeedback('⚠️ لطفاً ابتدا آدرس سرور، نام کاربری و رمز نکست‌کلاد را در کادرهای بالا پر کنید.', true);
+      showToast('مشخصات نکست‌کلاد را کامل وارد کنید');
+    }
     return;
   }
+  const btnSave = document.getElementById('ncSaveBtn');
+  if (btnSave) btnSave.textContent = '⏳ در حال ارسال...';
+  updateModalNcFeedback('⏳ در حال اتصال و ارسال بکاپ به سرور نکست‌کلاد...', false);
   setNcStatus('sync', '☁️ در حال ارسال به نکست‌کلاد...');
+
   try {
     const rows = await getAll();
-    const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+    const payload = { app: "Daftar Mali", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
     const jsonStr = JSON.stringify(payload, null, 2);
     const targetUrl = buildWebdavUrl(cfg);
     const auth = 'Basic ' + btoa(unescape(encodeURIComponent(`${cfg.user.trim()}:${cfg.pass.trim()}`)));
 
     const res = await webdavRequest('PUT', targetUrl, auth, jsonStr);
+    if (btnSave) btnSave.textContent = '💾 ذخیره و بکاپ ابری';
 
     if (res.ok || res.status === 201 || res.status === 204) {
       const nowTime = new Date().toTimeString().slice(0,5);
       localStorage.setItem('ncLastOk', nowTime);
       setNcStatus('ok', `☁️ بکاپ ابری فعال (${nowTime})`);
+      updateModalNcFeedback(`✅ متصل شد! فایل بکاپ با موفقیت در نکست‌کلاد ذخیره شد (ساعت ${nowTime}).`, false);
       if (!silent) showToast('✅ بکاپ در سرور نکست‌کلاد ذخیره شد');
     } else {
       setNcStatus('err', `⚠️ خطای سرور (${res.status})`);
-      if (!silent) showToast(`خطای سرور نکست‌کلاد (کد ${res.status})`);
+      let reason = `کد خطا: ${res.status}`;
+      if (res.status === 401) reason = 'نام کاربری یا رمز عبور (App Password) اشتباه است (کد 401).';
+      else if (res.status === 404) reason = 'مسیر WebDAV یا نام کاربری در سرور پیدا نشد (کد 404).';
+      updateModalNcFeedback(`❌ خطا در ذخیره بکاپ: ${reason}`, true);
+      if (!silent) showToast(`خطای نکست‌کلاد (${res.status})`);
     }
   } catch (err) {
-    setNcStatus('err', '⚠️ سرور در دسترس نیست (از بکاپ دستی استفاده کنید)');
-    if (!silent) showToast('عدم ارتباط مستقیم با سرور؛ از دکمه ارسال فایل بکاپ استفاده کنید');
+    if (btnSave) btnSave.textContent = '💾 ذخیره و بکاپ ابری';
+    setNcStatus('err', '⚠️ عدم ارتباط با سرور');
+    updateModalNcFeedback(`❌ عدم برقراری ارتباط با سرور: ${err.message || 'آدرس سرور یا اینترنت را بررسی کنید.'}`, true);
+    if (!silent) showToast('خطا در ارتباط با سرور نکست‌کلاد');
   }
 };
 
@@ -457,17 +571,25 @@ window.downloadFromNextcloud = async function() {
   saveNcInputs();
   const cfg = getNcConfig();
   if (!cfg.url || !cfg.user || !cfg.pass) {
-    showToast('ابتدا مشخصات سرور نکست‌کلاد را وارد کنید');
+    updateModalNcFeedback('⚠️ لطفاً ابتدا آدرس سرور، نام کاربری و رمز نکست‌کلاد را وارد کنید.', true);
+    showToast('ابتدا مشخصات سرور را وارد کنید');
     return;
   }
+  const btnDl = document.getElementById('ncDlBtn');
+  if (btnDl) btnDl.textContent = '⏳ در حال دریافت...';
+  updateModalNcFeedback('⏳ در حال دریافت فایل بکاپ از نکست‌کلاد...', false);
   setNcStatus('sync', '☁️ در حال دریافت از نکست‌کلاد...');
+
   try {
     const targetUrl = buildWebdavUrl(cfg);
     const auth = 'Basic ' + btoa(unescape(encodeURIComponent(`${cfg.user.trim()}:${cfg.pass.trim()}`)));
     const res = await webdavRequest('GET', targetUrl, auth, null);
+    if (btnDl) btnDl.textContent = '☁️ بازیابی از سرور';
+
     if (!res.ok) {
       setNcStatus('err', `⚠️ خطا در دریافت (${res.status})`);
-      showToast('فایل بکاپ در سرور پیدا نشد یا رمز اشتباه است');
+      updateModalNcFeedback(`❌ فایل بکاپ در سرور پیدا نشد یا رمز اشتباه است (کد ${res.status}).`, true);
+      showToast('فایل بکاپ در سرور پیدا نشد');
       return;
     }
     const d = JSON.parse(res.text);
@@ -481,31 +603,32 @@ window.downloadFromNextcloud = async function() {
     await render();
     localStorage.setItem('ncLastOk', new Date().toTimeString().slice(0,5));
     setNcStatus('ok', '☁️ بازیابی از نکست‌کلاد انجام شد');
-    closeModal();
+    updateModalNcFeedback(`✅ ${rows.length} رکورد با موفقیت از نکست‌کلاد بازیابی شد!`, false);
     showToast('✅ اطلاعات از نکست‌کلاد بازیابی شد');
   } catch (err) {
+    if (btnDl) btnDl.textContent = '☁️ بازیابی از سرور';
     setNcStatus('err', '⚠️ خطا در دریافت از سرور');
+    updateModalNcFeedback(`❌ خطا در دریافت از سرور: ${err.message || ''}`, true);
     showToast('خطا در ارتباط با سرور نکست‌کلاد');
   }
 };
 
-// روش قبلی بکاپ دستی (ارسال فایل به برنامه‌های گوشی مثل اپ نکست‌کلاد یا تلگرام)
 window.manualShareBackup = async function() {
   const rows = await getAll();
-  const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+  const payload = { app: "Daftar Mali", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
   const jsonStr = JSON.stringify(payload, null, 2);
-  const fileName = `WorkshopFinance_${todayISO()}.json`;
+  const fileName = `DaftarMali_${todayISO()}.json`;
 
   if (window.plugins && window.plugins.socialsharing) {
     const base64Data = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonStr)));
-    window.plugins.socialsharing.share('فایل پشتیبان اطلاعات مالی کارگاه', fileName, base64Data, null);
+    window.plugins.socialsharing.share(null, fileName, base64Data, null);
     return;
   }
 
   try {
     const file = new File([jsonStr], fileName, { type: "application/json" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'بکاپ دفتر مالی', text: 'فایل پشتیبان اطلاعات کارگاه' });
+      await navigator.share({ files: [file], title: 'بکاپ دفتر مالی', text: 'فایل پشتیبان دفتر مالی' });
       showToast('✅ ارسال فایل انجام شد');
       return;
     }
@@ -516,7 +639,7 @@ window.manualShareBackup = async function() {
 
 window.copyBackupTextManual = async function() {
   const rows = await getAll();
-  const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+  const payload = { app: "Daftar Mali", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
   const jsonStr = JSON.stringify(payload, null, 2);
   const box = document.getElementById('manualCopyWrap');
   const txt = document.getElementById('backupTextManual');
@@ -545,7 +668,7 @@ window.saveNcInputs = function() {
     url: urlEl.value.trim(),
     user: userEl.value.trim(),
     pass: passEl.value.trim(),
-    filename: fileEl.value.trim() || 'WorkshopFinance_Backup.json',
+    filename: fileEl.value.trim() || 'DaftarMali_Backup.json',
     auto: autoEl.checked
   };
   localStorage.setItem('ncConfig', JSON.stringify(data));
@@ -564,57 +687,54 @@ window.openBackupModal = function() {
       <button type="button" onclick="closeModal()">بستن</button>
     </div>
 
-    <!-- بخش اول: بکاپ و بازیابی دستی (روش قبلی و تضمینی) -->
     <div class="card" style="background:#0b1220; margin-bottom:12px;">
-      <div style="font-weight:800; font-size:0.9em; color:var(--good); margin-bottom:8px;">📱 بکاپ و بازیابی مستقیم در گوشی (روش قبلی)</div>
-      <div class="small muted" style="margin-bottom:10px; line-height:1.5;">
-        ارسال مستقیم فایل بکاپ به اپ نکست‌کلادِ گوشی، تلگرام یا حافظه و بازیابی از فایل:
-      </div>
+      <div style="font-weight:800; font-size:0.9em; color:var(--good); margin-bottom:8px;">📱 بکاپ و بازیابی دستی (ارسال فایل)</div>
       <div class="row">
         <button type="button" class="good" onclick="manualShareBackup()">📤 ارسال فایل بکاپ</button>
         <button type="button" class="primary" onclick="document.getElementById('importFile').click()">📥 بازیابی از فایل</button>
       </div>
       <div style="margin-top:8px;">
-        <button type="button" style="width:100%; padding:9px; font-size:0.82em;" onclick="copyBackupTextManual()">📋 کپی متنی کل اطلاعات (پشتیبان اضطراری)</button>
+        <button type="button" style="width:100%; padding:9px; font-size:0.82em;" onclick="copyBackupTextManual()">📋 کپی متنی کل اطلاعات</button>
       </div>
       <div id="manualCopyWrap" class="hidden" style="margin-top:8px;">
         <textarea id="backupTextManual" readonly style="width:100%; height:90px; font-family:monospace; font-size:0.72em; direction:ltr; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:10px; padding:6px;"></textarea>
       </div>
     </div>
 
-    <!-- بخش دوم: اتصال خودکار به سرور نکست‌کلاد -->
     <div class="card" style="background:#0b1220;">
-      <div style="font-weight:800; font-size:0.9em; color:var(--accent); margin-bottom:6px;">☁️ اتصال خودکار به سرور نکست‌کلاد (WebDAV)</div>
-      <label>آدرس سرور نکست‌کلاد</label>
+      <div style="font-weight:800; font-size:0.9em; color:var(--accent); margin-bottom:6px;">☁️ اتصال خودکار به سرور نکست‌کلاد</div>
+      <label>آدرس سرور نکست‌کلاد (مثال: https://cloud.example.com)</label>
       <input id="ncUrl" dir="ltr" value="${escapeHtml(cfg.url||'')}" placeholder="https://cloud.example.com">
       
       <div class="row">
         <div>
-          <label>نام کاربری</label>
+          <label>نام کاربری نکست‌کلاد</label>
           <input id="ncUser" dir="ltr" value="${escapeHtml(cfg.user||'')}" placeholder="username">
         </div>
         <div>
-          <label>رمز (یا App Password)</label>
+          <label>رمز عبور (یا App Password)</label>
           <input id="ncPass" type="password" dir="ltr" value="${escapeHtml(cfg.pass||'')}" placeholder="••••••••">
         </div>
       </div>
 
       <label>نام فایل در نکست‌کلاد</label>
-      <input id="ncFilename" dir="ltr" value="${escapeHtml(cfg.filename||'WorkshopFinance_Backup.json')}">
+      <input id="ncFilename" dir="ltr" value="${escapeHtml(cfg.filename||'DaftarMali_Backup.json')}">
 
       <label style="display:flex; align-items:center; gap:8px; margin-top:12px; color:var(--text); font-size:0.85em; cursor:pointer;">
         <input type="checkbox" id="ncAuto" style="width:18px; height:18px;" ${cfg.auto !== false ? 'checked' : ''}>
         <span>بکاپ اتوماتیک پس از هر ثبت یا تغییر</span>
       </label>
 
+      <!-- کادر نمایش وضعیت لحظه‌ای اتصال به نکست‌کلاد -->
+      <div id="ncModalFeedback" style="display:none; margin-top:12px; padding:10px; border-radius:10px; border:1px solid #334155; font-size:0.82em; line-height:1.6;"></div>
+
       <div class="row" style="margin-top:14px;">
-        <button type="button" class="good" onclick="saveAndSyncNextcloud()">💾 ذخیره و بکاپ ابری</button>
-        <button type="button" class="warn" onclick="downloadFromNextcloud()">☁️ بازیابی از سرور</button>
+        <button type="button" id="ncSaveBtn" class="good" onclick="saveAndSyncNextcloud()">💾 ذخیره و بکاپ ابری</button>
+        <button type="button" id="ncDlBtn" class="warn" onclick="downloadFromNextcloud()">☁️ بازیابی از سرور</button>
       </div>
     </div>
   `);
 };
-// -----------------------------------------------------------------
 
 window.addEventListener('popstate', function(e) {
   const picker = document.getElementById('datePickerOverlay');
@@ -817,11 +937,18 @@ function openForm(record=null){
     <form id="recordForm">
       <input type="hidden" name="id" value="${r.id}">
       <input type="hidden" name="installmentPaidCount" value="${r.installmentPaidCount||0}">
+      <input type="hidden" name="type" id="typeField" value="${r.type}">
       
       <label>نوع تراکنش</label>
-      <select name="type" id="typeField">
-        ${Object.entries(typeLabels).map(([k,v])=>`<option value="${k}" ${r.type===k?'selected':''}>${v}</option>`).join('')}
-      </select>
+      <div class="custom-dd" id="ddFormType">
+        <div class="custom-dd-trigger" onclick="toggleCustomDD('ddFormType', event)">
+          <span id="ddFormTypeLabel">${typeLabels[r.type] || 'بدهی'}</span>
+          <span class="custom-dd-arrow">▾</span>
+        </div>
+        <div class="custom-dd-menu">
+          ${Object.entries(typeLabels).map(([k,v])=>`<div class="custom-dd-item ${r.type===k?'selected':''}" onclick="selectFormType('${k}', '${v}', this)">${v}</div>`).join('')}
+        </div>
+      </div>
       
       <label>عنوان / شرح</label>
       <input name="title" value="${escapeHtml(r.title||'')}" placeholder="مثال: اجاره، وام..." required>
@@ -914,7 +1041,19 @@ function openForm(record=null){
     }
   }
 
-  typeField.addEventListener('change', toggleSections);
+  window.selectFormType = function(val, label, itemEl) {
+    typeField.value = val;
+    document.getElementById('ddFormTypeLabel').textContent = label;
+    const parent = itemEl.closest('.custom-dd');
+    if (parent) {
+      parent.querySelectorAll('.custom-dd-item').forEach(i => i.classList.remove('selected'));
+      itemEl.classList.add('selected');
+      parent.classList.remove('open');
+    }
+    toggleSections();
+    calcTotal();
+  };
+
   instEachAmount.addEventListener('input', calcTotal);
   instCount.addEventListener('input', calcTotal);
   toggleSections();
@@ -1042,11 +1181,10 @@ async function softDeleteRecord(id){
 }
 
 function sortRecords(arr){
-  const sortBy = document.getElementById('sortBy').value;
   return arr.sort((a,b)=>{
-    if (sortBy === 'dueAsc') return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
-    if (sortBy === 'updatedDesc') return (b.updatedAt||'').localeCompare(a.updatedAt||'');
-    if (sortBy === 'amountDesc') return (b.amount||0)-(a.amount||0);
+    if (currentSort === 'dueAsc') return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
+    if (currentSort === 'updatedDesc') return (b.updatedAt||'').localeCompare(a.updatedAt||'');
+    if (currentSort === 'amountDesc') return (b.amount||0)-(a.amount||0);
     return (a.amount||0)-(b.amount||0);
   });
 }
@@ -1341,17 +1479,6 @@ async function render(){
 
 function bindUI(){
   document.getElementById('search').oninput = render;
-  document.getElementById('sortBy').onchange = render;
-  
-  document.getElementById('typeSelect').onchange = (e) => {
-    currentTab = e.target.value;
-    render();
-  };
-
-  document.getElementById('statusSelect').onchange = (e) => {
-    currentStatus = e.target.value;
-    render();
-  };
   
   const cfg = getNcConfig();
   if (cfg.url && cfg.user && cfg.pass) {
@@ -1387,11 +1514,14 @@ function bindUI(){
 
 document.addEventListener('deviceready', function() {
     document.addEventListener("backbutton", function (e) {
+        const openDD = document.querySelector('.custom-dd.open');
         const imageViewer = document.getElementById('imageViewerModal');
         const picker = document.getElementById('datePickerOverlay');
         const backdrop = document.getElementById('backdrop');
 
-        if (imageViewer && imageViewer.classList.contains('show')) {
+        if (openDD) {
+            openDD.classList.remove('open');
+        } else if (imageViewer && imageViewer.classList.contains('show')) {
             imageViewer.classList.remove('show');
         } else if (picker) {
             picker.remove();
