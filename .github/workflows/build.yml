@@ -1,52 +1,1571 @@
-name: Build Android APK
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="apple-touch-icon" href="icon.png" />
+  <title>دفتر مالی</title>
+  <style>
+    :root {
+      --bg: #0b1220; --panel: #111827; --panel2: #0f172a; --line: #243041; 
+      --text: #e5e7eb; --muted: #94a3b8; --accent: #38bdf8; --good: #22c55e; 
+      --warn: #f59e0b; --bad: #ef4444; --chip: #1e293b;
+      --c-inst: #a855f7; --c-debt: #ef4444; --c-exp: #0ea5e9; --c-chq: #f59e0b; --c-rec: #22c55e;
+      --fz: 16px;
+    }
+    * { 
+      box-sizing: border-box; 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+      -webkit-tap-highlight-color: transparent; 
+    } 
+    input, textarea, select { -webkit-user-select: auto; user-select: auto; }
+    html, body { 
+      margin: 0; padding: 0; background: linear-gradient(180deg, #08101d 0%, #0b1220 100%); 
+      color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-size: var(--fz); -webkit-font-smoothing: antialiased; overscroll-behavior-y: none;
+    }
+    body { min-height: 100vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 14px 12px 90px; }
+    
+    .top { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .brand { font-weight: 800; font-size: 1.15em; }
+    .sub { color: var(--muted); font-size: 0.72em; margin-top: 3px; }
+    .header-actions { display: flex; gap: 6px; align-items: center; }
+    .font-btn { background: var(--chip); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 7px 10px; cursor: pointer; font-weight: bold; font-size: 0.85em; }
+    .top-backup-btn { background: var(--chip); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 7px 12px; cursor: pointer; font-weight: 800; font-size: 0.82em; display: flex; align-items: center; gap: 5px; transition: all 0.2s; }
+    .top-backup-btn.nc-ok { background: linear-gradient(135deg, #16a34a, #22c55e); border-color: #22c55e; color: #fff; box-shadow: 0 4px 12px rgba(34,197,94,0.25); }
+    .top-backup-btn.nc-sync { background: linear-gradient(135deg, #d97706, #f59e0b); border-color: #f59e0b; color: #fff; }
+    .top-backup-btn.nc-err { background: rgba(239,68,68,0.2); border-color: var(--bad); color: #fca5a5; }
+    
+    .grid { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; }
+    .card { background: rgba(17,24,39,.92); border: 1px solid var(--line); border-radius: 18px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+    .stat { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; }
+    .stat .label { color: var(--muted); font-size: 0.85em; font-weight: bold; margin: 0; }
+    .stat .value { font-size: 1.2em; font-weight: 800; margin: 0; white-space: nowrap; font-family: monospace; }
+    
+    button, .btn { border: 0; border-radius: 14px; padding: 11px 14px; font-weight: 700; background: var(--chip); color: var(--text); cursor: pointer; font-size: 0.9em; }
+    button.primary { background: linear-gradient(135deg, #0ea5e9, #2563eb); color: #fff; }
+    button.good { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; }
+    button.warn { background: linear-gradient(135deg, #d97706, #f59e0b); color: #fff; }
+    button.bad { background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; }
+    button:active { transform: scale(.97); }
+    
+    input, select, textarea { width: 100%; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: var(--text); padding: 10px 12px; font-size: 0.9em; outline: none; font-family: inherit; }
+    input[type=number] { font-family: monospace; direction: ltr; text-align: left; }
+    textarea { min-height: 84px; resize: vertical; }
+    input[readonly], input:disabled { background: #1e293b; color: #94a3b8; border-color: #0f172a; }
+    label { display: block; font-size: 0.78em; color: var(--muted); margin: 10px 0 5px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-on:
-  workflow_dispatch: 
-  push:
-    branches: [ main ]
+    /* استایل دراپ‌داون ظریف و بازشو دقیقاً زیر فیلد */
+    .custom-dd { position: relative; width: 100%; }
+    .custom-dd-trigger {
+      width: 100%; border-radius: 12px; border: 1px solid #334155; background: #0b1220; color: var(--text);
+      padding: 10px 12px; font-size: 0.85em; font-weight: 600; display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; transition: border-color 0.15s;
+    }
+    .custom-dd.open .custom-dd-trigger { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56,189,248,0.15); }
+    .custom-dd-arrow { font-size: 0.75em; color: var(--muted); transition: transform 0.2s; }
+    .custom-dd.open .custom-dd-arrow { transform: rotate(180deg); color: var(--accent); }
+    .custom-dd-menu {
+      position: absolute; top: calc(100% + 5px); right: 0; left: 0; background: #111827;
+      border: 1px solid #334155; border-radius: 12px; padding: 4px; z-index: 90;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.65); display: none; max-height: 230px; overflow-y: auto;
+    }
+    .custom-dd.open .custom-dd-menu { display: block; animation: ddFade 0.14s ease-out; }
+    @keyframes ddFade { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .custom-dd-item {
+      padding: 8px 10px; border-radius: 8px; font-size: 0.82em; color: var(--text);
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    }
+    .custom-dd-item:active, .custom-dd-item:hover { background: #1e293b; }
+    .custom-dd-item.selected { background: rgba(56,189,248,0.15); color: var(--accent); font-weight: 800; }
+    
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .item { background: rgba(15,23,42,.95); border: 1px solid var(--line); border-radius: 18px; padding: 12px; }
+    .item-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .title { font-weight: 800; font-size: 1em; }
+    .meta { font-size: 0.8em; color: var(--muted); margin-top: 4px; line-height: 1.7; }
+    .amount-display { font-family: monospace; font-weight: 800; font-size: 1.1em; direction: ltr; text-align: right; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: #132238; font-size: 0.75em; color: #cbd5e1; border: 1px solid #263246; }
+    .pill.good { background: rgba(34,197,94,.14); color: #86efac; border-color: rgba(34,197,94,.28); }
+    .pill.warn { background: rgba(245,158,11,.12); color: #fcd34d; border-color: rgba(245,158,11,.26); }
+    .pill.bad { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.26); }
+    
+    .type-badge-installment { background: rgba(168,85,247,.16); color: #d8b4fe; border-color: rgba(168,85,247,.35); }
+    .type-badge-debt { background: rgba(239,68,68,.16); color: #fca5a5; border-color: rgba(239,68,68,.35); }
+    .type-badge-expense { background: rgba(14,165,233,.16); color: #7dd3fc; border-color: rgba(14,165,233,.35); }
+    .type-badge-cheque { background: rgba(245,158,11,.16); color: #fcd34d; border-color: rgba(245,158,11,.35); }
+    .type-badge-receivable { background: rgba(34,197,94,.16); color: #86efac; border-color: rgba(34,197,94,.35); }
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    .radar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .month-nav { display: flex; align-items: center; gap: 6px; background: #0b1220; padding: 3px 5px; border-radius: 10px; border: 1px solid var(--line); }
+    .month-nav button { padding: 4px 9px; border-radius: 7px; background: var(--chip); font-size: 0.8em; }
+    .month-title { font-weight: 800; font-size: 0.85em; min-width: 90px; text-align: center; }
+    .radar-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .r-box { background: #0b1220; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; border-right-width: 4px; }
+    .r-box .r-lbl { font-size: 0.72em; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .r-box .r-val { font-family: monospace; font-weight: 800; font-size: 0.95em; direction: ltr; text-align: right; }
+    
+    .cal-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #0b1220; padding: 10px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 12px; }
+    .cal-day { aspect-ratio: 1; border-radius: 10px; background: #111827; border: 1px solid #1e293b; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-size: 0.75em; color: var(--muted); cursor: pointer; }
+    .cal-day.has-item { color: #fff; font-weight: 800; background: #1e293b; border-color: #334155; }
+    .cal-day.is-today { border: 2px solid var(--accent); color: var(--accent); font-weight: 800; }
+    .cal-dots { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; justify-content: center; max-width: 90%; }
+    .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
+    .tl-list { display: flex; flex-direction: column; }
+    .tl-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #0b1220; border: 1px solid var(--line); border-right-width: 4px; border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+    .tl-gap { display: flex; align-items: center; gap: 8px; padding: 4px 16px; color: var(--muted); font-size: 0.72em; }
+    .tl-gap-line { width: 2px; height: 18px; border-right: 2px dashed #334155; margin-left: 6px; }
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .actions button { padding: 8px 12px; border-radius: 12px; font-size: 0.85em; }
+    .muted { color: var(--muted); }
+    .empty { padding: 24px; text-align: center; color: var(--muted); }
+    .fab { position: fixed; bottom: 18px; left: 18px; z-index: 50; box-shadow: 0 10px 24px rgba(0,0,0,.45); padding: 13px 18px; font-size: 0.95em; }
+    
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: none; align-items: flex-end; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
+    .modal { width: min(100%, 760px); max-height: 90vh; overflow-y: auto; background: #0f172a; border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid #243041; padding: 16px; -webkit-overflow-scrolling: touch; }
+    .modal.show, .modal-backdrop.show { display: flex; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+    
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes splashSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes autoHideSplash { 0%, 75% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; pointer-events: none; } }
 
-      - name: Install Cordova
-        run: npm install -g cordova
+    #splashScreen {
+      position: fixed; inset: 0; background: linear-gradient(180deg, #08101d 0%, #0b1220 100%);
+      z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      animation: autoHideSplash 1.1s ease forwards;
+    }
 
-      - name: Build APK
-        run: |
-          cordova create app com.kargah.finance "FinanceApp"
-          rm -rf app/www/*
-          cp index.html app/www/
-          cp icon.png app/ || true
-          
-          sed -i 's|</widget>|    <icon src="icon.png" />\n    <access origin="*" />\n    <allow-navigation href="*" />\n    <preference name="AndroidInsecureFileModeEnabled" value="true" />\n</widget>|' app/config.xml
-          
-          cd app
-          cordova plugin add cordova-plugin-x-socialsharing
-          cordova plugin add cordova-plugin-shortcuts-android
-          cordova plugin add cordova-plugin-advanced-http
-          
-          cordova platform add android
-          cordova build android
-          
-          find . -name "*.apk" -exec cp {} ../ \;
+    .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .small { font-size: 0.75em; }
+    .toast { position: fixed; top: 12px; left: 12px; right: 12px; z-index: 500; display: none; }
+    .toast.show { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .toast .card { padding: 12px 14px; text-align: center; background: #22c55e; color: #fff; font-weight: bold; border: none; }
+    .section { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #334155; }
+    .hidden { display: none !important; }
+    .dateFieldWrap { display: flex; gap: 8px; align-items: center; }
+    .dateFieldWrap input { flex: 1; }
+    .dateFieldWrap button { white-space: nowrap; padding: 10px 10px; }
+    .picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    
+    @media (min-width: 600px) {
+        .grid { flex-direction: row; }
+        .stat { flex-direction: column; align-items: flex-start; flex: 1; }
+        .stat .value { margin-top: 8px; }
+        .radar-summary { grid-template-columns: repeat(4, 1fr); }
+        .cal-strip { grid-template-columns: repeat(10, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  
+  <div id="splashScreen" onclick="this.remove()">
+      <div style="width: 96px; height: 96px; display:flex; align-items:center; justify-content:center; margin-bottom: 20px;">
+          <svg width="90" height="90" viewBox="0 0 100 100" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="15,25 50,52 85,25 85,42 50,69 15,42" />
+            <polygon points="15,47 30,59 30,82 15,72" />
+            <polygon points="85,47 70,59 70,82 85,72" />
+          </svg>
+      </div>
+      <h1 style="color: white; margin: 0; font-size: 1.6em; font-weight: 800; letter-spacing: -0.5px;">دفتر مالی</h1>
+      <p style="color: #94a3b8; font-size: 0.9em; margin-top: 8px;">مدیریت هوشمند حساب‌ها</p>
+      <div style="margin-top: 36px; width: 34px; height: 34px; border: 3px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: splashSpin 0.8s linear infinite;"></div>
+  </div>
+  <script>
+    setTimeout(function(){ var s = document.getElementById('splashScreen'); if(s) s.remove(); }, 1100);
+  </script>
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: FinanceApp-APK
-          path: "*.apk"
+  <div class="toast" id="toast"><div class="card" id="toastText"></div></div>
+  <div class="wrap">
+    
+    <div class="top">
+      <div>
+        <div class="brand">دفتر مالی</div>
+        <div class="sub" id="ncStatusText">مدیریت هوشمند حساب‌ها</div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="top-backup-btn" id="topBackupBtn" onclick="openBackupModal()">
+          <span id="topBackupIcon">☁️</span>
+          <span id="topBackupLabel">بکاپ</span>
+        </button>
+        <button type="button" class="font-btn" onclick="changeFontSize(1)">A+</button>
+        <button type="button" class="font-btn" onclick="changeFontSize(-1)">A-</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card stat">
+          <div class="label">کل بدهی‌های باز</div>
+          <div class="value" id="statDebt" style="color:var(--text)">0</div>
+      </div>
+      <div class="card stat">
+          <div class="label">بدهیِ سررسید شده</div>
+          <div class="value" id="statOverdueDebt" style="color:var(--bad)">0</div>
+      </div>
+      <div class="card stat">
+          <div class="label">قسطِ سررسید شده</div>
+          <div class="value" id="statOverdueInst" style="color:var(--warn)">0</div>
+      </div>
+    </div>
+
+    <!-- کادر هوشمند یادآوری سررسیدهای نزدیک یا گذشته -->
+    <div id="remindersWrap"></div>
+    
+    <!-- رادار و تقویم ماهانه -->
+    <div id="monthlyRadarWrap" style="margin-bottom: 12px;"></div>
+
+    <!-- فیلترها با دراپ‌داون ظریفِ بازشو دقیقاً زیر هر فیلد -->
+    <div class="card" style="margin-bottom: 12px; padding: 10px 12px; position: relative; z-index: 40;">
+      <div class="row" style="margin-bottom: 8px;">
+        <div>
+          <div class="small muted" style="margin-bottom: 4px;">نوع تراکنش</div>
+          <div class="custom-dd" id="ddType">
+            <div class="custom-dd-trigger" onclick="toggleCustomDD('ddType', event)">
+              <span id="ddTypeLabel">📂 همه موارد</span>
+              <span class="custom-dd-arrow">▾</span>
+            </div>
+            <div class="custom-dd-menu">
+              <div class="custom-dd-item selected" onclick="selectFilterDD('type', 'all', '📂 همه موارد', this)">📂 همه موارد</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'debt', '🔴 بدهی', this)">🔴 بدهی</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'installment', '🟣 قسط', this)">🟣 قسط</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'cheque', '🟠 چک', this)">🟠 چک</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'expense', '🔵 هزینه ثابت', this)">🔵 هزینه ثابت</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'receivable', '🟢 طلب', this)">🟢 طلب</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('type', 'overdue', '⚠️ عقب‌افتاده', this)">⚠️ عقب‌افتاده</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="small muted" style="margin-bottom: 4px;">وضعیت</div>
+          <div class="custom-dd" id="ddStatus">
+            <div class="custom-dd-trigger" onclick="toggleCustomDD('ddStatus', event)">
+              <span id="ddStatusLabel">⏳ باز (تسویه نشده)</span>
+              <span class="custom-dd-arrow">▾</span>
+            </div>
+            <div class="custom-dd-menu">
+              <div class="custom-dd-item selected" onclick="selectFilterDD('status', 'open', '⏳ باز (تسویه نشده)', this)">⏳ باز (تسویه نشده)</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('status', 'partial', '🌗 بخشی پرداخت شده', this)">🌗 بخشی پرداخت شده</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('status', 'closed', '✅ تسویه شده', this)">✅ تسویه شده</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('status', 'all-status', '📋 همه وضعیت‌ها', this)">📋 همه وضعیت‌ها</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="align-items:center;">
+        <div>
+          <input id="search" placeholder="🔍 جستجو..." />
+        </div>
+        <div>
+          <div class="custom-dd" id="ddSort">
+            <div class="custom-dd-trigger" onclick="toggleCustomDD('ddSort', event)">
+              <span id="ddSortLabel">⇅ سررسید نزدیک‌تر</span>
+              <span class="custom-dd-arrow">▾</span>
+            </div>
+            <div class="custom-dd-menu">
+              <div class="custom-dd-item selected" onclick="selectFilterDD('sort', 'dueAsc', '⇅ سررسید نزدیک‌تر', this)">⇅ سررسید نزدیک‌تر</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('sort', 'updatedDesc', '⇅ آخرین تغییر', this)">⇅ آخرین تغییر</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('sort', 'amountDesc', '⇅ مبلغ بیشتر', this)">⇅ مبلغ بیشتر</div>
+              <div class="custom-dd-item" onclick="selectFilterDD('sort', 'amountAsc', '⇅ مبلغ کمتر', this)">⇅ مبلغ کمتر</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="list" id="list"></div>
+  </div>
+
+  <button class="fab primary" id="fab" onclick="openForm()">+ ثبت جدید</button>
+
+  <div class="modal-backdrop" id="backdrop">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <div class="modal-backdrop" id="imageViewerModal" style="z-index: 10000; align-items: center; justify-content: center;" onclick="this.classList.remove('show')">
+      <div style="position: relative; max-width: 95%; max-height: 90vh;">
+          <img id="fullSizeImage" style="width: 100%; max-height: 90vh; border-radius: 16px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
+          <div style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: sans-serif;">✕</div>
+      </div>
+  </div>
+
+  <script src="cordova.js"></script>
+
+<script>
+let currentFontSize = parseInt(localStorage.getItem('appFontSize')) || 16;
+document.documentElement.style.setProperty('--fz', currentFontSize + 'px');
+
+function changeFontSize(step) {
+    currentFontSize += (step * 2);
+    if(currentFontSize < 12) currentFontSize = 12;
+    if(currentFontSize > 24) currentFontSize = 24;
+    document.documentElement.style.setProperty('--fz', currentFontSize + 'px');
+    localStorage.setItem('appFontSize', currentFontSize);
+}
+
+const DB_NAME = 'workshop_finance_db';
+const DB_VERSION = 3;
+const STORE = 'records';
+let db;
+let currentTab = 'all';
+let currentStatus = 'open';
+let currentSort = 'dueAsc';
+
+// مدیریت دراپ‌داون‌های ظریف زیر فیلد
+window.toggleCustomDD = function(id, ev) {
+  if (ev) ev.stopPropagation();
+  const el = document.getElementById(id);
+  if (!el) return;
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.custom-dd.open').forEach(d => d.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+};
+
+window.selectFilterDD = function(kind, val, label, itemEl) {
+  if (kind === 'type') {
+    currentTab = val;
+    document.getElementById('ddTypeLabel').textContent = label;
+  } else if (kind === 'status') {
+    currentStatus = val;
+    document.getElementById('ddStatusLabel').textContent = label;
+  } else if (kind === 'sort') {
+    currentSort = val;
+    document.getElementById('ddSortLabel').textContent = label;
+  }
+  const parent = itemEl.closest('.custom-dd');
+  if (parent) {
+    parent.querySelectorAll('.custom-dd-item').forEach(i => i.classList.remove('selected'));
+    itemEl.classList.add('selected');
+    parent.classList.remove('open');
+  }
+  render();
+};
+
+document.addEventListener('click', function() {
+  document.querySelectorAll('.custom-dd.open').forEach(d => d.classList.remove('open'));
+});
+
+const formatMoney = (n) => (Number(n||0)).toLocaleString('en-US');
+const todayISO = () => new Date().toISOString().slice(0,10);
+const daysFromNow = (n) => { const d=new Date(); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const uid = () => String(Date.now())+Math.random().toString(16).slice(2);
+
+function div(a,b){ return ~~(a/b); }
+function jalaliToGregorian(jy, jm, jd) {
+  jy += 1595;
+  let days = -355668 + (365 * jy) + div(jy / 33, 1) * 8 + div(((jy % 33) + 3), 4) + jd + (jm < 7 ? (jm - 1) * 31 : ((jm - 7) * 30) + 186);
+  let gy = 400 * div(days, 146097);
+  days %= 146097;
+  if (days > 36524) { gy += 100 * div(--days, 36524); days %= 36524; if (days >= 365) days++; }
+  gy += 4 * div(days, 1461); days %= 1461;
+  if (days > 365) { gy += div(days - 1, 365); days = (days - 1) % 365; }
+  let gd = days + 1;
+  const sal_a = [0,31,((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0)) ? 29 : 28,31,30,31,30,31,31,30,31,30,31];
+  let gm; for (gm = 1; gm <= 12 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
+  return { gy, gm, gd };
+}
+function gregorianToJalali(gy, gm, gd){
+  var g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334];
+  gy = Number(gy); gm = Number(gm); gd = Number(gd);
+  var jy; if (gy > 1600) { jy = 979; gy -= 1600; } else { jy = 0; gy -= 621; }
+  var gy2 = (gm > 2) ? (gy + 1) : gy;
+  var days = (365 * gy) + div((gy2 + 3), 4) - div((gy2 + 99), 100) + div((gy2 + 399), 400) - 80 + gd + g_d_m[gm - 1];
+  jy += 33 * div(days, 12053); days %= 12053;
+  jy += 4 * div(days, 1461); days %= 1461;
+  if (days > 365) { jy += div(days - 1, 365); days = (days - 1) % 365; }
+  var jm = (days < 186) ? 1 + div(days, 31) : 7 + div(days - 186, 30);
+  var jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+  return { jy, jm, jd };
+}
+function isoToJalaliParts(iso){
+  if(!iso) return null; const [y,m,d] = iso.split('-').map(Number);
+  try{ return gregorianToJalali(y,m,d); }catch(e){ return null; }
+}
+function isoToJalaliText(iso){
+  const p = isoToJalaliParts(iso);
+  if(!p) return '—';
+  return `${p.jy}/${String(p.jm).padStart(2,'0')}/${String(p.jd).padStart(2,'0')}`;
+}
+
+const jalaliMonthNames = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const todayJParts = isoToJalaliParts(todayISO()) || { jy: 1405, jm: 1, jd: 1 };
+let radarYear = todayJParts.jy;
+let radarMonth = todayJParts.jm;
+let radarCollapsed = false;
+
+window.changeRadarMonth = function(delta) {
+  radarMonth += delta;
+  if (radarMonth > 12) { radarMonth = 1; radarYear++; }
+  if (radarMonth < 1) { radarMonth = 12; radarYear--; }
+  render();
+};
+
+window.toggleRadarBody = function() {
+  radarCollapsed = !radarCollapsed;
+  render();
+};
+
+const stateLabels = { open: 'باز', partial: 'بخشی پرداخت شده', closed: 'تسویه شده' };
+const typeLabels = { debt: 'بدهی', receivable: 'طلب', cheque: 'چک', installment: 'قسط', expense: 'هزینه ثابت', income: 'درآمد' };
+const typeColors = {
+  installment: '#a855f7',
+  debt: '#ef4444',
+  expense: '#0ea5e9',
+  cheque: '#f59e0b',
+  receivable: '#22c55e',
+  income: '#22c55e'
+};
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').innerHTML = msg;
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// --- مرکز یکپارچه بکاپ و نکست‌کلاد ---
+function getNcConfig() {
+  try { return JSON.parse(localStorage.getItem('ncConfig') || '{}'); } catch(e) { return {}; }
+}
+
+function updateModalNcFeedback(msg, isError = false) {
+  const box = document.getElementById('ncModalFeedback');
+  if (!box) return;
+  box.style.display = 'block';
+  box.style.background = isError ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)';
+  box.style.borderColor = isError ? '#ef4444' : '#22c55e';
+  box.style.color = isError ? '#fca5a5' : '#86efac';
+  box.innerHTML = msg;
+}
+
+function setNcStatus(state, text) {
+  const btn = document.getElementById('topBackupBtn');
+  const lbl = document.getElementById('topBackupLabel');
+  const sub = document.getElementById('ncStatusText');
+  if (btn) {
+    btn.className = 'top-backup-btn ' + (state === 'ok' ? 'nc-ok' : (state === 'sync' ? 'nc-sync' : (state === 'err' ? 'nc-err' : '')));
+  }
+  if (lbl) {
+    lbl.textContent = state === 'ok' ? 'بکاپ ✓' : (state === 'sync' ? 'بکاپ...' : 'بکاپ');
+  }
+  if (sub && text) sub.textContent = text;
+}
+
+function buildWebdavUrl(cfg) {
+  let base = (cfg.url || '').trim().replace(/\/+$/, '');
+  if (base && !/^https?:\/\//i.test(base)) base = 'https://' + base;
+  // پاکسازی لینک اگر کاربر آدرس صفحه وب نکست‌کلاد را کپی کرده باشد
+  if (base.includes('/index.php')) base = base.split('/index.php')[0];
+  if (base.includes('/apps/')) base = base.split('/apps/')[0];
+  let user = encodeURIComponent((cfg.user || '').trim());
+  let file = (cfg.filename || 'DaftarMali_Backup.json').trim().replace(/^\/+/, '');
+  if (base.includes('/remote.php/')) {
+    return `${base}/${file}`;
+  }
+  return `${base}/remote.php/dav/files/${user}/${file}`;
+}
+
+let autoSyncTimer = null;
+function triggerAutoBackup() {
+  const cfg = getNcConfig();
+  if (!cfg.url || !cfg.user || !cfg.pass || cfg.auto === false) return;
+  if (autoSyncTimer) clearTimeout(autoSyncTimer);
+  setNcStatus('sync', '☁️ در حال بکاپ خودکار...');
+  autoSyncTimer = setTimeout(() => {
+    uploadToNextcloud(true);
+  }, 1200);
+}
+
+function webdavRequest(method, url, authHeader, bodyStr) {
+  return new Promise((resolve, reject) => {
+    if (window.cordova && window.cordova.plugin && window.cordova.plugin.http) {
+      try { window.cordova.plugin.http.setServerTrustMode('nocheck', function(){}, function(){}); } catch(e){}
+      window.cordova.plugin.http.setDataSerializer('utf8');
+      const options = {
+        method: method.toLowerCase(),
+        timeout: 15.0,
+        headers: { 'Authorization': authHeader, 'Content-Type': 'application/json; charset=utf-8' }
+      };
+      if (bodyStr) options.data = bodyStr;
+      window.cordova.plugin.http.sendRequest(url, options, function(resp) {
+        resolve({ ok: resp.status >= 200 && resp.status < 300, status: resp.status, text: resp.data });
+      }, function(err) {
+        if (err && err.status) {
+          resolve({ ok: false, status: err.status, text: err.error || '' });
+        } else {
+          reject(new Error((err && err.error) ? err.error : 'خطای شبکه در اتصال به سرور'));
+        }
+      });
+      return;
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.timeout = 12000;
+    xhr.setRequestHeader('Authorization', authHeader);
+    if (bodyStr) xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+    xhr.onload = function() {
+      resolve({ ok: xhr.status >= 200 && xhr.status < 300, status: xhr.status, text: xhr.responseText });
+    };
+    xhr.ontimeout = function() { reject(new Error('زمان اتصال به سرور به پایان رسید (Timeout)')); };
+    xhr.onerror = function() { reject(new Error('مسدود شدن توسط مرورگر (CORS) یا عدم دسترسی به آدرس سرور')); };
+    xhr.send(bodyStr || null);
+  });
+}
+
+window.uploadToNextcloud = async function(silent = false) {
+  const cfg = getNcConfig();
+  if (!cfg.url || !cfg.user || !cfg.pass) {
+    if (!silent) {
+      updateModalNcFeedback('⚠️ لطفاً ابتدا آدرس سرور، نام کاربری و رمز نکست‌کلاد را در کادرهای بالا پر کنید.', true);
+      showToast('مشخصات نکست‌کلاد را کامل وارد کنید');
+    }
+    return;
+  }
+  const btnSave = document.getElementById('ncSaveBtn');
+  if (btnSave) btnSave.textContent = '⏳ در حال ارسال...';
+  updateModalNcFeedback('⏳ در حال اتصال و ارسال بکاپ به سرور نکست‌کلاد...', false);
+  setNcStatus('sync', '☁️ در حال ارسال به نکست‌کلاد...');
+
+  try {
+    const rows = await getAll();
+    const payload = { app: "Daftar Mali", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const targetUrl = buildWebdavUrl(cfg);
+    const auth = 'Basic ' + btoa(unescape(encodeURIComponent(`${cfg.user.trim()}:${cfg.pass.trim()}`)));
+
+    const res = await webdavRequest('PUT', targetUrl, auth, jsonStr);
+    if (btnSave) btnSave.textContent = '💾 ذخیره و بکاپ ابری';
+
+    if (res.ok || res.status === 201 || res.status === 204) {
+      const nowTime = new Date().toTimeString().slice(0,5);
+      localStorage.setItem('ncLastOk', nowTime);
+      setNcStatus('ok', `☁️ بکاپ ابری فعال (${nowTime})`);
+      updateModalNcFeedback(`✅ متصل شد! فایل بکاپ با موفقیت در نکست‌کلاد ذخیره شد (ساعت ${nowTime}).`, false);
+      if (!silent) showToast('✅ بکاپ در سرور نکست‌کلاد ذخیره شد');
+    } else {
+      setNcStatus('err', `⚠️ خطای سرور (${res.status})`);
+      let reason = `کد خطا: ${res.status}`;
+      if (res.status === 401) reason = 'نام کاربری یا رمز عبور (App Password) اشتباه است (کد 401).';
+      else if (res.status === 404) reason = 'مسیر WebDAV یا نام کاربری در سرور پیدا نشد (کد 404).';
+      updateModalNcFeedback(`❌ خطا در ذخیره بکاپ: ${reason}`, true);
+      if (!silent) showToast(`خطای نکست‌کلاد (${res.status})`);
+    }
+  } catch (err) {
+    if (btnSave) btnSave.textContent = '💾 ذخیره و بکاپ ابری';
+    setNcStatus('err', '⚠️ عدم ارتباط با سرور');
+    updateModalNcFeedback(`❌ عدم برقراری ارتباط با سرور: ${err.message || 'آدرس سرور یا اینترنت را بررسی کنید.'}`, true);
+    if (!silent) showToast('خطا در ارتباط با سرور نکست‌کلاد');
+  }
+};
+
+window.downloadFromNextcloud = async function() {
+  saveNcInputs();
+  const cfg = getNcConfig();
+  if (!cfg.url || !cfg.user || !cfg.pass) {
+    updateModalNcFeedback('⚠️ لطفاً ابتدا آدرس سرور، نام کاربری و رمز نکست‌کلاد را وارد کنید.', true);
+    showToast('ابتدا مشخصات سرور را وارد کنید');
+    return;
+  }
+  const btnDl = document.getElementById('ncDlBtn');
+  if (btnDl) btnDl.textContent = '⏳ در حال دریافت...';
+  updateModalNcFeedback('⏳ در حال دریافت فایل بکاپ از نکست‌کلاد...', false);
+  setNcStatus('sync', '☁️ در حال دریافت از نکست‌کلاد...');
+
+  try {
+    const targetUrl = buildWebdavUrl(cfg);
+    const auth = 'Basic ' + btoa(unescape(encodeURIComponent(`${cfg.user.trim()}:${cfg.pass.trim()}`)));
+    const res = await webdavRequest('GET', targetUrl, auth, null);
+    if (btnDl) btnDl.textContent = '☁️ بازیابی از سرور';
+
+    if (!res.ok) {
+      setNcStatus('err', `⚠️ خطا در دریافت (${res.status})`);
+      updateModalNcFeedback(`❌ فایل بکاپ در سرور پیدا نشد یا رمز اشتباه است (کد ${res.status}).`, true);
+      showToast('فایل بکاپ در سرور پیدا نشد');
+      return;
+    }
+    const d = JSON.parse(res.text);
+    const rows = Array.isArray(d) ? d : (d.records || []);
+    for (let x of rows) {
+      if (x.issueDateEpochDay && !x.issueDate) x.issueDate = new Date(x.issueDateEpochDay * 86400000).toISOString().split('T')[0];
+      if (x.dueDateEpochDay && !x.dueDate) x.dueDate = new Date(x.dueDateEpochDay * 86400000).toISOString().split('T')[0];
+      if (x.type === 'installment' && x.scheduleCount > 1 && !x.instEachAmount) x.instEachAmount = Math.round(x.amount / x.scheduleCount);
+      await saveRecord(x, true);
+    }
+    await render();
+    localStorage.setItem('ncLastOk', new Date().toTimeString().slice(0,5));
+    setNcStatus('ok', '☁️ بازیابی از نکست‌کلاد انجام شد');
+    updateModalNcFeedback(`✅ ${rows.length} رکورد با موفقیت از نکست‌کلاد بازیابی شد!`, false);
+    showToast('✅ اطلاعات از نکست‌کلاد بازیابی شد');
+  } catch (err) {
+    if (btnDl) btnDl.textContent = '☁️ بازیابی از سرور';
+    setNcStatus('err', '⚠️ خطا در دریافت از سرور');
+    updateModalNcFeedback(`❌ خطا در دریافت از سرور: ${err.message || ''}`, true);
+    showToast('خطا در ارتباط با سرور نکست‌کلاد');
+  }
+};
+
+window.manualShareBackup = async function() {
+  const rows = await getAll();
+  const payload = { app: "Daftar Mali", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const fileName = `DaftarMali_${todayISO()}.json`;
+
+  if (window.plugins && window.plugins.socialsharing) {
+    const base64Data = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonStr)));
+    window.plugins.socialsharing.share(null, fileName, base64Data, null);
+    return;
+  }
+
+  try {
+    const file = new File([jsonStr], fileName, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'بکاپ دفتر مالی', text: 'فایل پشتیبان دفتر مالی' });
+      showToast('✅ ارسال فایل انجام شد');
+      return;
+    }
+  } catch (err) {}
+
+  window.copyBackupTextManual();
+};
+
+window.copyBackupTextManual = async function() {
+  const rows = await getAll();
+  const payload = { app: "Daftar Mali", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const box = document.getElementById('manualCopyWrap');
+  const txt = document.getElementById('backupTextManual');
+  if (box && txt) {
+    box.classList.remove('hidden');
+    txt.value = jsonStr;
+    txt.select();
+    txt.setSelectionRange(0, 999999);
+  }
+  try {
+    await navigator.clipboard.writeText(jsonStr);
+    showToast('✅ متن کامل بکاپ کپی شد!');
+  } catch (e) {
+    try { document.execCommand('copy'); showToast('✅ متن کامل بکاپ کپی شد!'); } catch(err) {}
+  }
+};
+
+window.saveNcInputs = function() {
+  const urlEl = document.getElementById('ncUrl');
+  const userEl = document.getElementById('ncUser');
+  const passEl = document.getElementById('ncPass');
+  const fileEl = document.getElementById('ncFilename');
+  const autoEl = document.getElementById('ncAuto');
+  if (!urlEl) return;
+  const data = {
+    url: urlEl.value.trim(),
+    user: userEl.value.trim(),
+    pass: passEl.value.trim(),
+    filename: fileEl.value.trim() || 'DaftarMali_Backup.json',
+    auto: autoEl.checked
+  };
+  localStorage.setItem('ncConfig', JSON.stringify(data));
+};
+
+window.saveAndSyncNextcloud = async function() {
+  saveNcInputs();
+  await uploadToNextcloud(false);
+};
+
+window.openBackupModal = function() {
+  const cfg = getNcConfig();
+  openModal(`
+    <div class="modal-head">
+      <div style="font-weight:800;font-size:1.15em;color:var(--accent)">☁️ مرکز بکاپ و بازیابی</div>
+      <button type="button" onclick="closeModal()">بستن</button>
+    </div>
+
+    <div class="card" style="background:#0b1220; margin-bottom:12px;">
+      <div style="font-weight:800; font-size:0.9em; color:var(--good); margin-bottom:8px;">📱 بکاپ و بازیابی دستی (ارسال فایل)</div>
+      <div class="row">
+        <button type="button" class="good" onclick="manualShareBackup()">📤 ارسال فایل بکاپ</button>
+        <button type="button" class="primary" onclick="document.getElementById('importFile').click()">📥 بازیابی از فایل</button>
+      </div>
+      <div style="margin-top:8px;">
+        <button type="button" style="width:100%; padding:9px; font-size:0.82em;" onclick="copyBackupTextManual()">📋 کپی متنی کل اطلاعات</button>
+      </div>
+      <div id="manualCopyWrap" class="hidden" style="margin-top:8px;">
+        <textarea id="backupTextManual" readonly style="width:100%; height:90px; font-family:monospace; font-size:0.72em; direction:ltr; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:10px; padding:6px;"></textarea>
+      </div>
+    </div>
+
+    <div class="card" style="background:#0b1220;">
+      <div style="font-weight:800; font-size:0.9em; color:var(--accent); margin-bottom:6px;">☁️ اتصال خودکار به سرور نکست‌کلاد</div>
+      <label>آدرس سرور نکست‌کلاد (مثال: https://cloud.example.com)</label>
+      <input id="ncUrl" dir="ltr" value="${escapeHtml(cfg.url||'')}" placeholder="https://cloud.example.com">
+      
+      <div class="row">
+        <div>
+          <label>نام کاربری نکست‌کلاد</label>
+          <input id="ncUser" dir="ltr" value="${escapeHtml(cfg.user||'')}" placeholder="username">
+        </div>
+        <div>
+          <label>رمز عبور (یا App Password)</label>
+          <input id="ncPass" type="password" dir="ltr" value="${escapeHtml(cfg.pass||'')}" placeholder="••••••••">
+        </div>
+      </div>
+
+      <label>نام فایل در نکست‌کلاد</label>
+      <input id="ncFilename" dir="ltr" value="${escapeHtml(cfg.filename||'DaftarMali_Backup.json')}">
+
+      <label style="display:flex; align-items:center; gap:8px; margin-top:12px; color:var(--text); font-size:0.85em; cursor:pointer;">
+        <input type="checkbox" id="ncAuto" style="width:18px; height:18px;" ${cfg.auto !== false ? 'checked' : ''}>
+        <span>بکاپ اتوماتیک پس از هر ثبت یا تغییر</span>
+      </label>
+
+      <!-- کادر نمایش وضعیت لحظه‌ای اتصال به نکست‌کلاد -->
+      <div id="ncModalFeedback" style="display:none; margin-top:12px; padding:10px; border-radius:10px; border:1px solid #334155; font-size:0.82em; line-height:1.6;"></div>
+
+      <div class="row" style="margin-top:14px;">
+        <button type="button" id="ncSaveBtn" class="good" onclick="saveAndSyncNextcloud()">💾 ذخیره و بکاپ ابری</button>
+        <button type="button" id="ncDlBtn" class="warn" onclick="downloadFromNextcloud()">☁️ بازیابی از سرور</button>
+      </div>
+    </div>
+  `);
+};
+
+window.addEventListener('popstate', function(e) {
+  const picker = document.getElementById('datePickerOverlay');
+  if (picker) { picker.remove(); }
+  
+  const backdrop = document.getElementById('backdrop');
+  if (backdrop.classList.contains('show')) {
+      backdrop.classList.remove('show');
+      document.body.style.overflow = '';
+  }
+});
+
+function openModal(html){
+  window.history.pushState({modal: true}, "");
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('backdrop').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(){
+  window.history.back();
+}
+document.getElementById('backdrop').addEventListener('click', (e)=>{ if(e.target.id==='backdrop') closeModal(); });
+
+function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+window.showFullImage = function(src) {
+    if(!src) return;
+    document.getElementById('fullSizeImage').src = src;
+    document.getElementById('imageViewerModal').classList.add('show');
+};
+
+window.currentImagesArray = [];
+
+window.processImages = function(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                let width = img.width;
+                let height = img.height;
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const base64 = canvas.toDataURL('image/jpeg', 0.7);
+                
+                window.currentImagesArray.push(base64);
+                window.renderImagePreviews();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    event.target.value = '';
+};
+
+window.renderImagePreviews = function() {
+    const container = document.getElementById('imagePreviewsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    window.currentImagesArray.forEach((b64, index) => {
+        container.innerHTML += `
+            <div style="position:relative; display:inline-block; margin:4px;">
+                <img src="${b64}" onclick="showFullImage('${b64}')" style="width:70px; height:70px; border-radius:8px; object-fit:cover; border:1px solid var(--line); cursor:pointer;">
+                <div onclick="removeImage(${index})" style="position:absolute; top:-6px; right:-6px; background:var(--bad); color:#fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.5); z-index:10;">✕</div>
+            </div>
+        `;
+    });
+};
+
+window.removeImage = function(index) {
+    window.currentImagesArray.splice(index, 1);
+    window.renderImagePreviews();
+};
+
+window.customConfirm = function(msg, onConfirm) {
+    openModal(`
+        <div class="modal-head">
+          <div style="font-weight:800;font-size:1.2em;color:var(--warn)">تایید عملیات</div>
+          <button onclick="closeModal()">لغو</button>
+        </div>
+        <div style="padding: 20px 10px; text-align: center; font-size: 1.1em; line-height: 1.6;">
+            ${msg.replace(/\n/g, '<br>')}
+        </div>
+        <div class="row" style="margin-top: 15px;">
+            <button class="good" onclick="submitCustomConfirm()">بله، تایید</button>
+            <button class="bad" onclick="closeModal()">خیر، انصراف</button>
+        </div>
+    `);
+    window.submitCustomConfirm = () => {
+        closeModal();
+        onConfirm();
+    };
+};
+
+window.customPrompt = function(title, defaultVal, onConfirm) {
+    openModal(`
+        <div class="modal-head">
+          <div style="font-weight:800;font-size:1.2em;color:var(--accent)">ثبت پرداختی جدید</div>
+          <button onclick="closeModal()">لغو</button>
+        </div>
+        <div style="padding: 10px 0;">
+            <label style="text-align:center; font-size:1em;">${title}</label>
+            <input type="text" id="promptInput" value="${defaultVal}" dir="ltr" style="font-family:monospace; font-size:1.5em; font-weight:bold; text-align:center; margin-top:10px; padding:15px; color:var(--accent)">
+        </div>
+        <div style="margin-top: 20px;">
+            <button class="good" style="width:100%; padding:14px; font-size:1.1em;" onclick="submitCustomPrompt()">تایید و کسر از مانده</button>
+        </div>
+    `);
+    window.submitCustomPrompt = () => {
+        const val = document.getElementById('promptInput').value;
+        closeModal();
+        onConfirm(val);
+    };
+};
+
+function openPickerOverlay(initialIso, onPick){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-backdrop show';
+  overlay.id = 'datePickerOverlay';
+  overlay.style.zIndex = 300;
+  overlay.innerHTML = `
+    <div class="modal" style="margin:auto;">
+      <div class="modal-head"><div><div style="font-weight:800">انتخاب تاریخ</div></div><button type="button" onclick="closePickerOverlay()">بستن</button></div>
+      <div class="card" style="background:#0b1220;">
+        <div class="picker-grid">
+          <div><label>سال</label><select id="jYear"></select></div>
+          <div><label>ماه</label><select id="jMonth"></select></div>
+          <div><label>روز</label><select id="jDay"></select></div>
+        </div>
+        <div class="actions" style="margin-top:20px">
+          <button class="primary" type="button" id="jSave">تایید تاریخ</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const p = isoToJalaliParts(initialIso || todayISO()) || {jy:1405,jm:1,jd:1};
+  const yEl = overlay.querySelector('#jYear'), mEl = overlay.querySelector('#jMonth'), dEl = overlay.querySelector('#jDay');
+  
+  yEl.innerHTML = Array.from({length:15},(_,i)=>p.jy-7+i).map(y=>`<option value="${y}" ${y===p.jy?'selected':''}>${y}</option>`).join('');
+  mEl.innerHTML = Array.from({length:12},(_,i)=>i+1).map(m=>`<option value="${m}" ${m===p.jm?'selected':''}>${m}</option>`).join('');
+  
+  function fillDays(){
+    const max = Number(mEl.value) <= 6 ? 31 : (Number(mEl.value) === 12 ? 29 : 30);
+    const cur = Math.min(Number(p.jd||1), max);
+    dEl.innerHTML = Array.from({length:max},(_,i)=>i+1).map(d=>`<option value="${d}" ${d===cur?'selected':''}>${d}</option>`).join('');
+  }
+  yEl.onchange = fillDays; mEl.onchange = fillDays; fillDays();
+
+  overlay.querySelector('#jSave').onclick = ()=>{
+    const g = jalaliToGregorian(Number(yEl.value), Number(mEl.value), Number(dEl.value));
+    onPick(`${g.gy}-${String(g.gm).padStart(2,'0')}-${String(g.gd).padStart(2,'0')}`);
+    overlay.remove();
+  };
+  
+  window.closePickerOverlay = () => { overlay.remove(); };
+}
+
+async function editRecord(id){ openForm(await getRecord(id)); }
+async function removeRecord(id){ 
+  customConfirm('آیا از حذف این مورد اطمینان دارید؟\nاین عملیات قابل بازگشت نیست.', async () => {
+    await softDeleteRecord(id); 
+    await render(); 
+    showToast('حذف شد'); 
+  });
+}
+
+function openForm(record=null){
+  const r = record || {
+    id:'', type:'debt', title:'', counterparty:'', invoiceNumber:'', images:[], amount:'', paidAmount:0, dueDate:todayISO(), issueDate: todayISO(), status:'open', notes:'',
+    scheduleCount: 1, instEachAmount: '', installmentPaidCount: 0
+  };
+
+  window.currentImagesArray = r.images ? [...r.images] : (r.image ? [r.image] : []);
+
+  if(r.type === 'installment' && !r.instEachAmount && r.scheduleCount > 1) {
+    r.instEachAmount = Math.round(r.amount / r.scheduleCount);
+  }
+  if (r.type === 'installment' && r.paidAmount > 0 && (!r.installmentPaidCount || r.installmentPaidCount === 0)) {
+    r.installmentPaidCount = Math.round(r.paidAmount / r.instEachAmount);
+  }
+
+  openModal(`
+    <div class="modal-head">
+      <div style="font-weight:800;font-size:1.2em">${record ? 'ویرایش' : 'ثبت جدید'}</div>
+      <button type="button" onclick="closeModal()">بستن</button>
+    </div>
+    <form id="recordForm">
+      <input type="hidden" name="id" value="${r.id}">
+      <input type="hidden" name="installmentPaidCount" value="${r.installmentPaidCount||0}">
+      <input type="hidden" name="type" id="typeField" value="${r.type}">
+      
+      <label>نوع تراکنش</label>
+      <div class="custom-dd" id="ddFormType">
+        <div class="custom-dd-trigger" onclick="toggleCustomDD('ddFormType', event)">
+          <span id="ddFormTypeLabel">${typeLabels[r.type] || 'بدهی'}</span>
+          <span class="custom-dd-arrow">▾</span>
+        </div>
+        <div class="custom-dd-menu">
+          ${Object.entries(typeLabels).map(([k,v])=>`<div class="custom-dd-item ${r.type===k?'selected':''}" onclick="selectFormType('${k}', '${v}', this)">${v}</div>`).join('')}
+        </div>
+      </div>
+      
+      <label>عنوان / شرح</label>
+      <input name="title" value="${escapeHtml(r.title||'')}" placeholder="مثال: اجاره، وام..." required>
+      
+      <div class="row">
+        <div>
+           <label>طرف حساب (اختیاری)</label>
+           <input name="counterparty" value="${escapeHtml(r.counterparty||'')}" placeholder="نام شخص/شرکت">
+        </div>
+        <div>
+           <label>شماره فاکتور (اختیاری)</label>
+           <input name="invoiceNumber" value="${escapeHtml(r.invoiceNumber||'')}" placeholder="مثلاً: 1405-23">
+        </div>
+      </div>
+
+      <div class="section">
+         <label style="color:var(--accent);">عکس فاکتور / سند (امکان انتخاب چند فایل)</label>
+         <input type="file" id="invoiceImage" accept="image/*" multiple style="padding: 10px; font-size: 0.85em;" onchange="processImages(event)">
+         <div id="imagePreviewsContainer" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: flex-start;"></div>
+      </div>
+
+      <div id="instSection" class="section hidden">
+        <div class="row">
+          <div><label>مبلغ هر قسط</label><input type="number" id="instEachAmount" value="${r.instEachAmount||''}" placeholder="مبلغ یک قسط"></div>
+          <div><label>تعداد کل اقساط</label><input name="scheduleCount" type="number" id="instCount" min="1" value="${r.scheduleCount||1}"></div>
+        </div>
+      </div>
+
+      <div class="row section">
+        <div>
+          <label id="amountLabel">مبلغ کل</label>
+          <input name="amount" type="number" id="totalAmount" value="${r.amount||''}" placeholder="مبلغ نهایی" required>
+        </div>
+        <div>
+          <label>پرداخت شده تا الان</label>
+          <input name="paidAmount" type="number" value="${r.paidAmount||0}">
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>سررسید</label>
+          <div class="dateFieldWrap">
+            <input id="dueDateField" class="readonlyLike" type="text" value="${isoToJalaliText(r.dueDate)}" readonly>
+            <button type="button" id="pickDueDate">تغییر</button>
+          </div>
+          <input type="hidden" name="dueDate" id="dueDateValue" value="${r.dueDate||todayISO()}">
+        </div>
+      </div>
+
+      <label>وضعیت (محاسبه خودکار)</label>
+      <input class="readonlyLike" value="${stateLabels[r.status] || 'باز'}" readonly disabled>
+
+      <label>یادداشت</label>
+      <textarea name="notes">${escapeHtml(r.notes||'')}</textarea>
+      
+      <div class="actions" style="margin-top:16px; display: flex; gap: 8px;">
+        ${record && r.status !== 'closed' ? `<button type="button" class="good" style="flex:1" onclick="closeModal(); setTimeout(() => processPayment('${r.id}'), 150);">💳 ثبت پرداخت</button>` : ''}
+        <button class="primary" type="submit" style="${record && r.status !== 'closed' ? 'flex:1.5' : 'flex:1'}">ذخیره اطلاعات</button>
+      </div>
+    </form>
+  `);
+
+  setTimeout(window.renderImagePreviews, 50);
+
+  const typeField = document.getElementById('typeField');
+  const instSection = document.getElementById('instSection');
+  const totalAmount = document.getElementById('totalAmount');
+  const instEachAmount = document.getElementById('instEachAmount');
+  const instCount = document.getElementById('instCount');
+  const amountLabel = document.getElementById('amountLabel');
+
+  function toggleSections(){
+    if(typeField.value === 'installment'){
+      instSection.classList.remove('hidden');
+      totalAmount.setAttribute('readonly', 'true');
+      amountLabel.innerText = 'مبلغ کل (محاسبه خودکار)';
+    } else {
+      instSection.classList.add('hidden');
+      totalAmount.removeAttribute('readonly');
+      amountLabel.innerText = 'مبلغ کل';
+    }
+  }
+  
+  function calcTotal(){
+    if(typeField.value === 'installment'){
+      const each = Number(instEachAmount.value || 0);
+      const count = Number(instCount.value || 1);
+      totalAmount.value = each * count;
+    }
+  }
+
+  window.selectFormType = function(val, label, itemEl) {
+    typeField.value = val;
+    document.getElementById('ddFormTypeLabel').textContent = label;
+    const parent = itemEl.closest('.custom-dd');
+    if (parent) {
+      parent.querySelectorAll('.custom-dd-item').forEach(i => i.classList.remove('selected'));
+      itemEl.classList.add('selected');
+      parent.classList.remove('open');
+    }
+    toggleSections();
+    calcTotal();
+  };
+
+  instEachAmount.addEventListener('input', calcTotal);
+  instCount.addEventListener('input', calcTotal);
+  toggleSections();
+
+  document.getElementById('pickDueDate').onclick = (e) => {
+      e.preventDefault(); 
+      openPickerOverlay(document.getElementById('dueDateValue').value, (iso)=>{
+        document.getElementById('dueDateValue').value = iso;
+        document.getElementById('dueDateField').value = isoToJalaliText(iso);
+      });
+  };
+
+  document.getElementById('recordForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const data = Object.fromEntries(fd.entries());
+    
+    data.amount = Number(data.amount||0);
+    data.paidAmount = Number(data.paidAmount||0);
+    data.scheduleCount = Number(data.scheduleCount||1);
+    data.installmentPaidCount = Number(data.installmentPaidCount||0);
+    if(data.type === 'installment' && instEachAmount.value) {
+      data.instEachAmount = Number(instEachAmount.value);
+    }
+    
+    data.images = window.currentImagesArray;
+    
+    if(!record) data.id = uid();
+    data.updatedAt = new Date().toISOString();
+    
+    if(data.type === 'installment' && data.scheduleCount > 1) {
+       data.status = data.installmentPaidCount >= data.scheduleCount ? 'closed' : (data.installmentPaidCount > 0 ? 'partial' : 'open');
+    } else {
+       if (data.paidAmount >= data.amount && data.amount > 0) data.status = 'closed';
+       else if (data.paidAmount > 0) data.status = 'partial';
+       else data.status = 'open';
+    }
+
+    await saveRecord(data);
+    closeModal();
+    await render();
+    showToast('ذخیره شد');
+  });
+}
+
+async function processPayment(id){
+  const item = await getRecord(id);
+  if(!item) return;
+
+  if(item.type === 'installment' && Number(item.scheduleCount) > 1) {
+    let each = item.instEachAmount || (item.amount / item.scheduleCount);
+    let paidCount = item.installmentPaidCount || 0;
+    
+    if (paidCount === 0 && item.paidAmount > 0 && each > 0) {
+        paidCount = Math.round(item.paidAmount / each);
+    }
+
+    const rem = item.scheduleCount - paidCount;
+    if(rem <= 0) { showToast('همه اقساط پرداخت شده است!'); return; }
+    
+    customConfirm(`آیا یک قسط به مبلغ\n<b style="font-size:1.3em">${formatMoney(each)} تومان</b>\nپرداخت شده است؟`, async () => {
+       item.installmentPaidCount = paidCount + 1;
+       item.paidAmount = item.installmentPaidCount * each;
+       item.status = item.installmentPaidCount >= item.scheduleCount ? 'closed' : 'partial';
+       
+       if(item.status !== 'closed' && item.dueDate) {
+           let [y, m, d] = item.dueDate.split('-').map(Number);
+           m += 1;
+           if (m > 12) { m -= 12; y += 1; }
+           let daysInNextMonth = new Date(y, m, 0).getDate();
+           if (d > daysInNextMonth) d = daysInNextMonth;
+           item.dueDate = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+       }
+
+       item.updatedAt = new Date().toISOString();
+       await saveRecord(item);
+       showToast('یک قسط کسر شد و سررسید تمدید شد');
+       await render();
+    });
+  } else {
+    const remAmt = Math.max(0, item.amount - item.paidAmount);
+    if(remAmt <= 0) { showToast('این مورد تسویه شده است'); return; }
+    
+    customPrompt('چه مبلغی الان پرداخت می‌کنید؟ (برای تسویه کامل دست نزنید)', formatMoney(remAmt), async (amt) => {
+        if(amt === null) return;
+        const num = Number(String(amt).replace(/,/g, ''));
+        if(!num || num <= 0) return;
+        
+        item.paidAmount = (item.paidAmount || 0) + num;
+        item.status = item.paidAmount >= item.amount ? 'closed' : 'partial';
+        item.updatedAt = new Date().toISOString();
+        await saveRecord(item);
+        showToast('پرداخت ثبت شد');
+        await render();
+    });
+  }
+}
+
+async function initDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = () => { db = req.result; resolve(db); };
+  });
+}
+
+function tx(storeName=STORE, mode='readonly'){ return db.transaction(storeName, mode).objectStore(storeName); }
+function getAll(){ return new Promise((res,rej)=>{ const r = tx(STORE).getAll(); r.onsuccess=()=>res(r.result||[]); }); }
+function getRecord(id){ return new Promise((res,rej)=>{ const r = tx(STORE).get(id); r.onsuccess=()=>res(r.result); }); }
+function saveRecord(record, skipCloud=false){
+  return new Promise((res,rej)=>{
+    const r = tx(STORE, 'readwrite').put(record);
+    r.onsuccess=()=>{
+      if(!skipCloud) triggerAutoBackup();
+      res(true);
+    };
+  });
+}
+async function softDeleteRecord(id){
+  const r=await getRecord(id);
+  if(r){ r.deleted=true; r.updatedAt=new Date().toISOString(); await saveRecord(r); }
+}
+
+function sortRecords(arr){
+  return arr.sort((a,b)=>{
+    if (currentSort === 'dueAsc') return (a.dueDate||'9999').localeCompare(b.dueDate||'9999');
+    if (currentSort === 'updatedDesc') return (b.updatedAt||'').localeCompare(a.updatedAt||'');
+    if (currentSort === 'amountDesc') return (b.amount||0)-(a.amount||0);
+    return (a.amount||0)-(b.amount||0);
+  });
+}
+
+function isOverdue(r){
+  if (r.status === 'closed') return false;
+  return r.dueDate && r.dueDate < todayISO();
+}
+
+function filtered(arr){
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  let out = arr.filter(r=> !r.deleted).filter(r=>{
+    const searchHit = !q || [r.title,r.counterparty,r.notes,r.invoiceNumber].join(' ').toLowerCase().includes(q);
+    const tabHit = currentTab === 'all' || (currentTab === 'overdue' ? isOverdue(r) : r.type === currentTab);
+    
+    let statusHit = false;
+    if (currentStatus === 'all-status') statusHit = true;
+    else if (currentStatus === 'open') statusHit = (r.status === 'open' || r.status === 'partial');
+    else statusHit = (r.status === currentStatus);
+    
+    return searchHit && tabHit && statusHit;
+  });
+  return sortRecords(out);
+}
+
+function renderMonthlyRadar(rows) {
+  const wrap = document.getElementById('monthlyRadarWrap');
+  if (!wrap) return;
+
+  const maxDays = radarMonth <= 6 ? 31 : (radarMonth === 12 ? 29 : 30);
+  const todayP = isoToJalaliParts(todayISO());
+
+  const monthItems = [];
+  let sumInst = 0, sumDebt = 0, sumExp = 0, sumChq = 0;
+
+  rows.filter(r => !r.deleted && r.status !== 'closed' && ['installment', 'debt', 'expense', 'cheque'].includes(r.type)).forEach(r => {
+    const p = isoToJalaliParts(r.dueDate);
+    if (!p || p.jy !== radarYear || p.jm !== radarMonth) return;
+
+    let payAmt = Math.max(0, Number(r.amount || 0) - Number(r.paidAmount || 0));
+    if (r.type === 'installment') {
+      payAmt = Number(r.instEachAmount || Math.round(r.amount / (r.scheduleCount || 1)));
+      sumInst += payAmt;
+    } else if (r.type === 'debt') {
+      sumDebt += payAmt;
+    } else if (r.type === 'expense') {
+      sumExp += payAmt;
+    } else if (r.type === 'cheque') {
+      sumChq += payAmt;
+    }
+
+    monthItems.push({ ...r, jDay: p.jd, payAmt });
+  });
+
+  monthItems.sort((a, b) => a.jDay - b.jDay);
+  const totalMonth = sumInst + sumDebt + sumExp + sumChq;
+
+  const dayMap = {};
+  monthItems.forEach(item => {
+    if (!dayMap[item.jDay]) dayMap[item.jDay] = [];
+    dayMap[item.jDay].push(item);
+  });
+
+  let calCellsHTML = '';
+  for (let d = 1; d <= maxDays; d++) {
+    const itemsOnDay = dayMap[d] || [];
+    const isToday = todayP && todayP.jy === radarYear && todayP.jm === radarMonth && todayP.jd === d;
+    const dotsHTML = itemsOnDay.map(it => `<span class="cal-dot" style="background:${typeColors[it.type] || '#fff'}"></span>`).join('');
+    const clickAttr = itemsOnDay.length > 0 ? `onclick="editRecord('${itemsOnDay[0].id}')"` : '';
+    calCellsHTML += `
+      <div class="cal-day ${itemsOnDay.length ? 'has-item' : ''} ${isToday ? 'is-today' : ''}" ${clickAttr}>
+        <span>${d}</span>
+        ${dotsHTML ? `<div class="cal-dots">${dotsHTML}</div>` : ''}
+      </div>
+    `;
+  }
+
+  let timelineHTML = '';
+  if (monthItems.length === 0) {
+    timelineHTML = `<div class="small muted" style="text-align:center; padding: 12px 0;">در این ماه هیچ قسط، بدهی یا هزینه بازی ثبت نشده است.</div>`;
+  } else {
+    monthItems.forEach((item, idx) => {
+      const color = typeColors[item.type] || '#38bdf8';
+      if (idx > 0) {
+        const prevDay = monthItems[idx - 1].jDay;
+        const diff = item.jDay - prevDay;
+        const gapText = diff === 0 ? '⚡ همزمان در همان روز' : `⏳ ${diff} روز فاصله تا پرداخت بعدی`;
+        timelineHTML += `
+          <div class="tl-gap">
+            <div class="tl-gap-line"></div>
+            <span>${gapText}</span>
+          </div>
+        `;
+      }
+      timelineHTML += `
+        <div class="tl-item" onclick="editRecord('${item.id}')" style="border-right-color: ${color};">
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <div style="background:rgba(255,255,255,0.05); border:1px solid #334155; border-radius:10px; min-width:42px; height:42px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="font-weight:800; font-size:0.95em; color:#fff;">${item.jDay}</span>
+              <span style="font-size:0.6em; color:var(--muted);">${jalaliMonthNames[radarMonth - 1]}</span>
+            </div>
+            <div style="min-width:0;">
+              <div style="font-weight:800; font-size:0.9em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.title)}</div>
+              <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                <span class="pill type-badge-${item.type}" style="padding:2px 8px; font-size:0.68em;">${typeLabels[item.type]}</span>
+                ${item.counterparty ? `<span class="small muted">${escapeHtml(item.counterparty)}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div style="text-align:left; font-family:monospace; font-weight:800; font-size:0.95em; color:${color}; flex-shrink:0;">
+            ${formatMoney(item.payAmt)}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  wrap.innerHTML = `
+    <div class="card" style="border-color:#26354d;">
+      <div class="radar-head">
+        <div onclick="toggleRadarBody()" style="cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:800; font-size:0.92em; color:var(--accent);">
+          <span>📅 رادار ماهانه</span>
+          <span class="small muted">(${radarCollapsed ? 'تقویم و فاصله‌ها ▾' : 'بستن تقویم ▴'})</span>
+        </div>
+        <div class="month-nav">
+          <button type="button" onclick="changeRadarMonth(-1)">❮</button>
+          <div class="month-title">${jalaliMonthNames[radarMonth - 1]} ${radarYear}</div>
+          <button type="button" onclick="changeRadarMonth(1)">❯</button>
+        </div>
+      </div>
+
+      <div class="radar-summary">
+        <div class="r-box" style="border-right-color: var(--c-inst);">
+          <div class="r-lbl"><span class="cal-dot" style="background:var(--c-inst)"></span> قسط‌های ماه</div>
+          <div class="r-val" style="color:#d8b4fe">${formatMoney(sumInst)}</div>
+        </div>
+        <div class="r-box" style="border-right-color: var(--c-debt);">
+          <div class="r-lbl"><span class="cal-dot" style="background:var(--c-debt)"></span> بدهی و چک</div>
+          <div class="r-val" style="color:#fca5a5">${formatMoney(sumDebt + sumChq)}</div>
+        </div>
+        <div class="r-box" style="border-right-color: var(--c-exp);">
+          <div class="r-lbl"><span class="cal-dot" style="background:var(--c-exp)"></span> هزینه ثابت</div>
+          <div class="r-val" style="color:#7dd3fc">${formatMoney(sumExp)}</div>
+        </div>
+        <div class="r-box" style="border-right-color: #fff;">
+          <div class="r-lbl">∑ جمع خروجی ماه</div>
+          <div class="r-val" style="color:#fff">${formatMoney(totalMonth)}</div>
+        </div>
+      </div>
+
+      <div class="${radarCollapsed ? 'hidden' : ''}" style="margin-top:12px;">
+        <div class="small muted" style="margin-bottom:6px;">نمای روزهای ماه (نقطه‌های رنگی = روزهای پرداخت):</div>
+        <div class="cal-strip">${calCellsHTML}</div>
+        <div class="small muted" style="margin-bottom:8px;">تایم‌لاین و فاصله بین سررسیدها:</div>
+        <div class="tl-list">${timelineHTML}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderList(rows){
+  const el = document.getElementById('list');
+  if (!rows.length) { el.innerHTML = `<div class="card empty">موردی پیدا نشد.</div>`; return; }
+  
+  el.innerHTML = rows.map(r => {
+    let remaining = Math.max(0, Number(r.amount||0) - Number(r.paidAmount||0));
+    let instText = '';
+    let notesText = r.notes ? `<div style="margin-top:8px; font-size:0.85em; color:#93c5fd; background: rgba(147, 197, 253, 0.1); padding: 6px 10px; border-radius: 8px;">📝 ${escapeHtml(r.notes)}</div>` : '';
+    let invHTML = r.invoiceNumber ? `<div style="margin-top:6px; font-size:0.85em; color:var(--accent); font-weight:bold; background:rgba(56,189,248,0.1); display:inline-block; padding:2px 8px; border-radius:6px; border:1px solid rgba(56,189,248,0.3);">🧾 فاکتور: ${escapeHtml(r.invoiceNumber)}</div>` : '';
+    
+    let imgHTML = '';
+    let imagesList = r.images ? r.images : (r.image ? [r.image] : []);
+    if(imagesList.length > 0) {
+        const firstImg = imagesList[0];
+        const extraCount = imagesList.length > 1 ? `<div style="position:absolute; bottom:-4px; right:-4px; background:var(--accent); color:#000; font-size:0.75em; font-weight:bold; padding:2px 5px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">+${imagesList.length - 1}</div>` : '';
+        imgHTML = `
+            <div style="position:relative; flex-shrink:0;">
+                <img src="${firstImg}" onclick="showFullImage('${firstImg}')" style="width:55px; height:55px; border-radius:10px; object-fit:cover; cursor:pointer; border: 1px solid var(--line);">
+                ${extraCount}
+            </div>
+        `;
+    }
+    
+    let amountBlockHTML = '';
+    if(r.type === 'installment') {
+      let each = r.instEachAmount || Math.round((r.amount || 0) / (r.scheduleCount || 1));
+      let paid = r.installmentPaidCount || 0;
+      if (paid === 0 && r.paidAmount > 0 && each > 0) { paid = Math.round(r.paidAmount / each); }
+      if(Number(r.scheduleCount) > 1) {
+        instText = `<span class="pill warn">پرداخت: ${paid} از ${r.scheduleCount}</span>`;
+      }
+      amountBlockHTML = `
+        <div class="amount-display" style="padding-right:10px;">
+          <div style="color:#d8b4fe; font-size:1.15em;">${formatMoney(each)} <span style="font-size:0.6em; font-family:system-ui; font-weight:normal; color:var(--muted);">/قسط</span></div>
+          <div class="small muted" style="margin-top:3px;">کل: ${formatMoney(r.amount)}</div>
+          <div class="small muted">مانده: ${formatMoney(remaining)}</div>
+        </div>
+      `;
+    } else {
+      amountBlockHTML = `
+        <div class="amount-display" style="padding-right:10px;">
+          <div>${formatMoney(r.amount)}</div>
+          <div class="small muted">مانده: ${formatMoney(remaining)}</div>
+        </div>
+      `;
+    }
+
+    const borderColor = typeColors[r.type] || 'var(--line)';
+
+    return `
+      <div class="item" style="border-right: 4px solid ${borderColor};">
+        <div class="item-top">
+          <div style="display:flex; gap:12px; align-items:flex-start; flex:1; min-width:0;">
+            ${imgHTML}
+            <div style="flex:1; min-width:0;">
+              <div class="title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(r.title)}</div>
+              <div class="meta">${escapeHtml(r.counterparty||'—')}</div>
+              ${invHTML}
+              ${notesText}
+            </div>
+          </div>
+          ${amountBlockHTML}
+        </div>
+        <div class="actions">
+          <span class="pill type-badge-${r.type}">${typeLabels[r.type]||r.type}</span>
+          ${r.status==='closed'?'<span class="pill good">تسویه</span>':(isOverdue(r)?'<span class="pill bad">عقب‌افتاده</span>':'')}
+          <span class="pill">سررسید: ${isoToJalaliText(r.dueDate)}</span>
+          ${instText}
+        </div>
+        <div class="actions">
+          <button class="good" onclick="processPayment('${r.id}')">${r.type==='installment'?'پرداخت ۱ قسط':'پرداخت / تسویه'}</button>
+          <button onclick="editRecord('${r.id}')">ویرایش</button>
+          <button class="bad" onclick="removeRecord('${r.id}')">حذف</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function render(){
+  const rows = await getAll();
+  let debt = 0, overdueDebt = 0, overdueInst = 0;
+  let alerts = [];
+  const today = todayISO();
+  const next7 = daysFromNow(7);
+
+  rows.filter(r=>!r.deleted && r.status!=='closed').forEach(r=>{
+    const rem = Math.max(0, r.amount - (r.paidAmount||0));
+    if(r.type === 'debt' || r.type === 'installment' || r.type === 'expense') debt += rem;
+    
+    let amtForAlert = rem;
+    if(r.type === 'installment' && r.scheduleCount > 1) { amtForAlert = r.instEachAmount || Math.round(r.amount / r.scheduleCount); }
+
+    if (r.dueDate && r.dueDate < today) {
+       if(r.type === 'debt' || r.type === 'expense') overdueDebt += rem;
+       if(r.type === 'installment') overdueInst += amtForAlert;
+       alerts.push({ ...r, alertType: 'overdue', alertAmt: amtForAlert });
+    } else if (r.dueDate && r.dueDate >= today && r.dueDate <= next7) {
+       alerts.push({ ...r, alertType: 'upcoming', alertAmt: amtForAlert });
+    }
+  });
+  
+  document.getElementById('statDebt').textContent = formatMoney(debt);
+  document.getElementById('statOverdueDebt').textContent = formatMoney(overdueDebt);
+  document.getElementById('statOverdueInst').textContent = formatMoney(overdueInst);
+
+  const remindersWrap = document.getElementById('remindersWrap');
+  if(alerts.length > 0) {
+      alerts.sort((a,b) => a.dueDate.localeCompare(b.dueDate));
+      remindersWrap.innerHTML = `
+        <div class="card" style="border: 1px solid var(--warn); background: rgba(245,158,11,0.08); margin-bottom:12px;">
+          <div style="color:var(--warn); font-weight:800; font-size:1.05em; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+            <span>🔔</span> نیازمند توجه
+          </div>
+          ${alerts.map(r => `
+            <div onclick="editRecord('${r.id}')" style="cursor:pointer; background:var(--bg); border:1px solid #334155; border-right: 4px solid ${typeColors[r.type]||'#f59e0b'}; padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-weight:bold; font-size:0.9em; margin-bottom:4px;">
+                  ${escapeHtml(r.title)}${r.alertType === 'overdue' ? '<span class="pill bad" style="padding:2px 6px; font-size:0.7em">گذشته</span>' : '<span class="pill warn" style="padding:2px 6px; font-size:0.7em">نزدیک</span>'}
+                </div>
+                <div class="small muted">${typeLabels[r.type]\vert{}\vert{}r.type} •${isoToJalaliText(r.dueDate)}</div>
+              </div>
+              <div style="font-family:monospace; font-weight:bold; color:var(--text)">${formatMoney(r.alertAmt)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+  } else { remindersWrap.innerHTML = ''; }
+
+  renderMonthlyRadar(rows);
+  renderList(filtered(rows));
+}
+
+function bindUI(){
+  document.getElementById('search').oninput = render;
+  
+  const cfg = getNcConfig();
+  if (cfg.url && cfg.user && cfg.pass) {
+    const lastOk = localStorage.getItem('ncLastOk');
+    setNcStatus('ok', lastOk ? `☁️ متصل به نکست‌کلاد (آخرین بکاپ: ${lastOk})` : '☁️ آماده اتصال به نکست‌کلاد');
+  }
+
+  document.getElementById('importFile').onchange = (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = async ()=>{
+      try {
+        const d = JSON.parse(r.result);
+        const rows = Array.isArray(d) ? d : (d.records || []);
+        for(let x of rows) {
+          if (x.issueDateEpochDay && !x.issueDate) x.issueDate = new Date(x.issueDateEpochDay * 86400000).toISOString().split('T')[0];
+          if (x.dueDateEpochDay && !x.dueDate) x.dueDate = new Date(x.dueDateEpochDay * 86400000).toISOString().split('T')[0];
+          if (x.type === 'installment' && x.scheduleCount > 1 && !x.instEachAmount) x.instEachAmount = Math.round(x.amount / x.scheduleCount);
+          await saveRecord(x, true);
+        }
+        await render();
+        closeModal();
+        triggerAutoBackup();
+        showToast('✅ با موفقیت بازیابی شد');
+      } catch(err) {
+        alert('فایل بک‌آپ خوانده نشد.');
+      }
+    }; 
+    r.readAsText(f); 
+    e.target.value='';
+  };
+}
+
+document.addEventListener('deviceready', function() {
+    document.addEventListener("backbutton", function (e) {
+        const openDD = document.querySelector('.custom-dd.open');
+        const imageViewer = document.getElementById('imageViewerModal');
+        const picker = document.getElementById('datePickerOverlay');
+        const backdrop = document.getElementById('backdrop');
+
+        if (openDD) {
+            openDD.classList.remove('open');
+        } else if (imageViewer && imageViewer.classList.contains('show')) {
+            imageViewer.classList.remove('show');
+        } else if (picker) {
+            picker.remove();
+        } else if (backdrop && backdrop.classList.contains('show')) {
+            closeModal();
+        } else {
+            navigator.app.exitApp();
+        }
+    }, false);
+
+    if (window.plugins && window.plugins.Shortcuts) {
+        const shortcuts = [
+            {
+                id: 'new_record',
+                shortLabel: 'ثبت جدید',
+                longLabel: 'ثبت فاکتور یا بدهی',
+                intent: { action: 'android.intent.action.RUN', flags: 67108864, extras: { 'shortcut_action': 'new_record' } }
+            },
+            {
+                id: 'search_record',
+                shortLabel: 'جستجو',
+                longLabel: 'جستجو در حساب‌ها',
+                intent: { action: 'android.intent.action.RUN', flags: 67108864, extras: { 'shortcut_action': 'search_record' } }
+            }
+        ];
+
+        window.plugins.Shortcuts.supportsDynamic(function(supported) {
+            if (supported) window.plugins.Shortcuts.setDynamic(shortcuts, function(){}, function(){});
+        });
+
+        function handleShortcut(intent) {
+            if (intent && intent.extras && intent.extras.shortcut_action) {
+                setTimeout(() => {
+                    if (intent.extras.shortcut_action === 'new_record') openForm();
+                    else if (intent.extras.shortcut_action === 'search_record') document.getElementById('search').focus();
+                }, 400);
+            }
+        }
+        window.plugins.Shortcuts.getIntent(handleShortcut);
+        window.plugins.Shortcuts.onNewIntent(handleShortcut);
+    }
+});
+
+initDB().then(()=>{ bindUI(); render(); });
+</script>
+</body>
+</html>
