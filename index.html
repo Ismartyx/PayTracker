@@ -14,15 +14,16 @@
       --bg: #0b1220; --panel: #111827; --panel2: #0f172a; --line: #243041; 
       --text: #e5e7eb; --muted: #94a3b8; --accent: #38bdf8; --good: #22c55e; 
       --warn: #f59e0b; --bad: #ef4444; --chip: #1e293b;
+      --c-inst: #a855f7; --c-debt: #ef4444; --c-exp: #0ea5e9; --c-chq: #f59e0b; --c-rec: #22c55e;
       --fz: 16px;
     }
     * { 
-    box-sizing: border-box; 
-    touch-action: manipulation; 
-    -webkit-user-select: none; 
-    user-select: none; 
-    -webkit-tap-highlight-color: transparent; 
-} 
+      box-sizing: border-box; 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+      -webkit-tap-highlight-color: transparent; 
+    } 
     input, textarea, select { -webkit-user-select: auto; user-select: auto; }
     html, body { 
       margin: 0; padding: 0; background: linear-gradient(180deg, #08101d 0%, #0b1220 100%); 
@@ -72,6 +73,36 @@
     .pill.good { background: rgba(34,197,94,.14); color: #86efac; border-color: rgba(34,197,94,.28); }
     .pill.warn { background: rgba(245,158,11,.12); color: #fcd34d; border-color: rgba(245,158,11,.26); }
     .pill.bad { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.26); }
+    
+    /* رنگ‌بندی اختصاصی انواع تراکنش */
+    .type-badge-installment { background: rgba(168,85,247,.16); color: #d8b4fe; border-color: rgba(168,85,247,.35); }
+    .type-badge-debt { background: rgba(239,68,68,.16); color: #fca5a5; border-color: rgba(239,68,68,.35); }
+    .type-badge-expense { background: rgba(14,165,233,.16); color: #7dd3fc; border-color: rgba(14,165,233,.35); }
+    .type-badge-cheque { background: rgba(245,158,11,.16); color: #fcd34d; border-color: rgba(245,158,11,.35); }
+    .type-badge-receivable { background: rgba(34,197,94,.16); color: #86efac; border-color: rgba(34,197,94,.35); }
+
+    /* استایل‌های رادار و تقویم ماهانه */
+    .radar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .month-nav { display: flex; align-items: center; gap: 6px; background: #0b1220; padding: 4px 6px; border-radius: 12px; border: 1px solid var(--line); }
+    .month-nav button { padding: 4px 10px; border-radius: 8px; background: var(--chip); font-size: 0.8em; }
+    .month-title { font-weight: 800; font-size: 0.9em; min-width: 95px; text-align: center; }
+    .radar-summary { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+    .r-box { background: #0b1220; border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; border-right-width: 4px; }
+    .r-box .r-lbl { font-size: 0.72em; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+    .r-box .r-val { font-family: monospace; font-weight: 800; font-size: 0.95em; direction: ltr; text-align: right; }
+    
+    .cal-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #0b1220; padding: 10px; border-radius: 14px; border: 1px solid var(--line); margin-bottom: 12px; }
+    .cal-day { aspect-ratio: 1; border-radius: 10px; background: #111827; border: 1px solid #1e293b; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; font-size: 0.75em; color: var(--muted); cursor: pointer; }
+    .cal-day.has-item { color: #fff; font-weight: 800; background: #1e293b; border-color: #334155; }
+    .cal-day.is-today { border: 2px solid var(--accent); color: var(--accent); font-weight: 800; }
+    .cal-dots { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; justify-content: center; max-width: 90%; }
+    .cal-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+    .tl-list { display: flex; flex-direction: column; }
+    .tl-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #0b1220; border: 1px solid var(--line); border-right-width: 4px; border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+    .tl-gap { display: flex; align-items: center; gap: 8px; padding: 4px 16px; color: var(--muted); font-size: 0.72em; }
+    .tl-gap-line { width: 2px; height: 18px; border-right: 2px dashed #334155; margin-left: 6px; }
+
     .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .actions button { padding: 8px 12px; border-radius: 12px; font-size: 0.85em; }
     .muted { color: var(--muted); }
@@ -103,6 +134,8 @@
         .grid { flex-direction: row; }
         .stat { flex-direction: column; align-items: flex-start; flex: 1; }
         .stat .value { margin-top: 8px; }
+        .radar-summary { grid-template-columns: repeat(4, 1fr); }
+        .cal-strip { grid-template-columns: repeat(10, 1fr); }
     }
   </style>
 </head>
@@ -154,6 +187,9 @@
 
     <div id="remindersWrap"></div>
 
+    <!-- بخش جدید: رادار و تقویم ماهانه (نمایش رنگ‌بندی شده و فاصله بین پرداخت‌ها) -->
+    <div id="monthlyRadarWrap" style="margin-bottom: 14px;"></div>
+
     <div class="tabs" id="tabs">
       <button class="tab active" data-tab="all">همه</button>
       <button class="tab" data-tab="debt">بدهی</button>
@@ -198,6 +234,7 @@
     <div class="modal" id="modal"></div>
   </div>
 
+  <!-- مودال نمایش عکس به صورت تمام صفحه -->
   <div class="modal-backdrop" id="imageViewerModal" style="z-index: 10000; align-items: center; justify-content: center;" onclick="this.classList.remove('show')">
       <div style="position: relative; max-width: 95%; max-height: 90vh;">
           <img id="fullSizeImage" style="width: 100%; max-height: 90vh; border-radius: 16px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
@@ -277,8 +314,34 @@ function isoToJalaliText(iso){
   return `${p.jy}/${String(p.jm).padStart(2,'0')}/${String(p.jd).padStart(2,'0')}`;
 }
 
+const jalaliMonthNames = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const todayJParts = isoToJalaliParts(todayISO()) || { jy: 1405, jm: 1, jd: 1 };
+let radarYear = todayJParts.jy;
+let radarMonth = todayJParts.jm;
+let radarCollapsed = false;
+
+window.changeRadarMonth = function(delta) {
+  radarMonth += delta;
+  if (radarMonth > 12) { radarMonth = 1; radarYear++; }
+  if (radarMonth < 1) { radarMonth = 12; radarYear--; }
+  render();
+};
+
+window.toggleRadarBody = function() {
+  radarCollapsed = !radarCollapsed;
+  render();
+};
+
 const stateLabels = { open: 'باز', partial: 'بخشی پرداخت شده', closed: 'تسویه شده' };
 const typeLabels = { debt: 'بدهی', receivable: 'طلب', cheque: 'چک', installment: 'قسط', expense: 'هزینه ثابت', income: 'درآمد' };
+const typeColors = {
+  installment: '#a855f7', // بنفش
+  debt: '#ef4444',        // قرمز
+  expense: '#0ea5e9',     // آبی
+  cheque: '#f59e0b',      // نارنجی
+  receivable: '#22c55e',  // سبز
+  income: '#22c55e'
+};
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -548,7 +611,7 @@ function openForm(record=null){
       <label>یادداشت</label>
       <textarea name="notes">${escapeHtml(r.notes||'')}</textarea>
       
-     <div class="actions" style="margin-top:16px; display: flex; gap: 8px;">
+      <div class="actions" style="margin-top:16px; display: flex; gap: 8px;">
         ${record && r.status !== 'closed' ? `<button type="button" class="good" style="flex:1" onclick="closeModal(); setTimeout(() => processPayment('${r.id}'), 150);">💳 ثبت پرداخت</button>` : ''}
         <button class="primary" type="submit" style="${record && r.status !== 'closed' ? 'flex:1.5' : 'flex:1'}">ذخیره اطلاعات</button>
       </div>
@@ -729,6 +792,145 @@ function filtered(arr){
   return sortRecords(out);
 }
 
+// رندر کردن رادار و تقویم ماهانه به همراه فاصله‌سنج بین پرداخت‌ها
+function renderMonthlyRadar(rows) {
+  const wrap = document.getElementById('monthlyRadarWrap');
+  if (!wrap) return;
+
+  const maxDays = radarMonth <= 6 ? 31 : (radarMonth === 12 ? 29 : 30);
+  const todayP = isoToJalaliParts(todayISO());
+
+  // فیلتر کردن هزینه‌های باز در ماه انتخاب شده
+  const monthItems = [];
+  let sumInst = 0, sumDebt = 0, sumExp = 0, sumChq = 0;
+
+  rows.filter(r => !r.deleted && r.status !== 'closed' && ['installment', 'debt', 'expense', 'cheque'].includes(r.type)).forEach(r => {
+    const p = isoToJalaliParts(r.dueDate);
+    if (!p || p.jy !== radarYear || p.jm !== radarMonth) return;
+
+    let payAmt = Math.max(0, Number(r.amount || 0) - Number(r.paidAmount || 0));
+    if (r.type === 'installment') {
+      payAmt = Number(r.instEachAmount || Math.round(r.amount / (r.scheduleCount || 1)));
+      sumInst += payAmt;
+    } else if (r.type === 'debt') {
+      sumDebt += payAmt;
+    } else if (r.type === 'expense') {
+      sumExp += payAmt;
+    } else if (r.type === 'cheque') {
+      sumChq += payAmt;
+    }
+
+    monthItems.push({ ...r, jDay: p.jd, payAmt });
+  });
+
+  monthItems.sort((a, b) => a.jDay - b.jDay);
+  const totalMonth = sumInst + sumDebt + sumExp + sumChq;
+
+  // ساخت نقاط روزهای ماه برای تقویم
+  const dayMap = {};
+  monthItems.forEach(item => {
+    if (!dayMap[item.jDay]) dayMap[item.jDay] = [];
+    dayMap[item.jDay].push(item);
+  });
+
+  let calCellsHTML = '';
+  for (let d = 1; d <= maxDays; d++) {
+    const itemsOnDay = dayMap[d] || [];
+    const isToday = todayP && todayP.jy === radarYear && todayP.jm === radarMonth && todayP.jd === d;
+    const dotsHTML = itemsOnDay.map(it => `<span class="cal-dot" style="background:${typeColors[it.type] || '#fff'}"></span>`).join('');
+    const clickAttr = itemsOnDay.length > 0 ? `onclick="editRecord('${itemsOnDay[0].id}')"` : '';
+    calCellsHTML += `
+      <div class="cal-day ${itemsOnDay.length ? 'has-item' : ''} ${isToday ? 'is-today' : ''}" ${clickAttr}>
+        <span>${d}</span>
+        ${dotsHTML ? `<div class="cal-dots">${dotsHTML}</div>` : ''}
+      </div>
+    `;
+  }
+
+  // ساخت تایم‌لاین و محاسبه فاصله (روزها) بین قسط‌ها و بدهی‌ها
+  let timelineHTML = '';
+  if (monthItems.length === 0) {
+    timelineHTML = `<div class="small muted" style="text-align:center; padding: 12px 0;">در این ماه هیچ قسط، بدهی یا هزینه بازی ثبت نشده است.</div>`;
+  } else {
+    monthItems.forEach((item, idx) => {
+      const color = typeColors[item.type] || '#38bdf8';
+      if (idx > 0) {
+        const prevDay = monthItems[idx - 1].jDay;
+        const diff = item.jDay - prevDay;
+        const gapText = diff === 0 ? '⚡ همزمان در همان روز' : `⏳ ${diff} روز فاصله تا پرداخت بعدی`;
+        timelineHTML += `
+          <div class="tl-gap">
+            <div class="tl-gap-line"></div>
+            <span>${gapText}</span>
+          </div>
+        `;
+      }
+      timelineHTML += `
+        <div class="tl-item" onclick="editRecord('${item.id}')" style="border-right-color: ${color};">
+          <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+            <div style="background:rgba(255,255,255,0.05); border:1px solid #334155; border-radius:10px; min-width:42px; height:42px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              <span style="font-weight:800; font-size:0.95em; color:#fff;">${item.jDay}</span>
+              <span style="font-size:0.6em; color:var(--muted);">${jalaliMonthNames[radarMonth - 1]}</span>
+            </div>
+            <div style="min-width:0;">
+              <div style="font-weight:800; font-size:0.9em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.title)}</div>
+              <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                <span class="pill type-badge-${item.type}" style="padding:2px 8px; font-size:0.68em;">${typeLabels[item.type]}</span>
+                ${item.counterparty ? `<span class="small muted">${escapeHtml(item.counterparty)}</span>` : ''}
+              </div>
+            </div>
+          </div>
+          <div style="text-align:left; font-family:monospace; font-weight:800; font-size:0.95em; color:${color}; flex-shrink:0;">
+            ${formatMoney(item.payAmt)}
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  wrap.innerHTML = `
+    <div class="card" style="border-color:#26354d;">
+      <div class="radar-head">
+        <div onclick="toggleRadarBody()" style="cursor:pointer; display:flex; align-items:center; gap:6px; font-weight:800; font-size:0.95em; color:var(--accent);">
+          <span>📅 رادار و تقویم ماهانه</span>
+          <span class="small muted">(${radarCollapsed ? 'نمایش ▾' : 'بستن ▴'})</span>
+        </div>
+        <div class="month-nav">
+          <button type="button" onclick="changeRadarMonth(-1)">❮</button>
+          <div class="month-title">${jalaliMonthNames[radarMonth - 1]} ${radarYear}</div>
+          <button type="button" onclick="changeRadarMonth(1)">❯</button>
+        </div>
+      </div>
+
+      <div class="radar-summary">
+        <div class="r-box" style="border-right-color: var(--c-inst);">
+          <div class="r-lbl"><span class="cal-dot" style="background:var(--c-inst)"></span> قسط‌های ماه</div>
+          <div class="r-val" style="color:#d8b4fe">${formatMoney(sumInst)}</div>
+        </div>
+        <div class="r-box" style="border-right-color: var(--c-debt);">
+          <div class="r-lbl"><span class="cal-dot" style="background:var(--c-debt)"></span> بدهی و چک</div>
+          <div class="r-val" style="color:#fca5a5">${formatMoney(sumDebt + sumChq)}</div>
+        </div>
+        <div class="r-box" style="border-right-color: var(--c-exp);">
+          <div class="r-lbl"><span class="cal-dot" style="background:var(--c-exp)"></span> هزینه ثابت</div>
+          <div class="r-val" style="color:#7dd3fc">${formatMoney(sumExp)}</div>
+        </div>
+        <div class="r-box" style="border-right-color: #fff;">
+          <div class="r-lbl">∑ جمع خروجی ماه</div>
+          <div class="r-val" style="color:#fff">${formatMoney(totalMonth)}</div>
+        </div>
+      </div>
+
+      <div class="${radarCollapsed ? 'hidden' : ''}">
+        <div class="small muted" style="margin-bottom:6px;">نمای روزهای ماه (نقطه‌های رنگی = روزهای پرداخت):</div>
+        <div class="cal-strip">${calCellsHTML}</div>
+        <div class="small muted" style="margin-bottom:8px;">تایم‌لاین و فاصله بین سررسیدها:</div>
+        <div class="tl-list">${timelineHTML}</div>
+      </div>
+    </div>
+  `;
+}
+
 function renderList(rows){
   const el = document.getElementById('list');
   if (!rows.length) { el.innerHTML = `<div class="card empty">موردی پیدا نشد.</div>`; return; }
@@ -752,15 +954,35 @@ function renderList(rows){
         `;
     }
     
-    if(r.type === 'installment' && Number(r.scheduleCount) > 1) {
-      let each = r.instEachAmount || (r.amount / r.scheduleCount);
+    // تغییر ۱: بولد و بزرگ شدن مبلغ هر قسط به جای مبلغ کل و نمایش کل و مانده در زیر آن
+    let amountBlockHTML = '';
+    if(r.type === 'installment') {
+      let each = r.instEachAmount || Math.round((r.amount || 0) / (r.scheduleCount || 1));
       let paid = r.installmentPaidCount || 0;
       if (paid === 0 && r.paidAmount > 0 && each > 0) { paid = Math.round(r.paidAmount / each); }
-      instText = `<span class="pill warn">پرداخت: ${paid} از ${r.scheduleCount}</span>`;
+      if(Number(r.scheduleCount) > 1) {
+        instText = `<span class="pill warn">پرداخت: ${paid} از ${r.scheduleCount}</span>`;
+      }
+      amountBlockHTML = `
+        <div class="amount-display" style="padding-right:10px;">
+          <div style="color:#d8b4fe; font-size:1.15em;">${formatMoney(each)} <span style="font-size:0.6em; font-family:system-ui; font-weight:normal; color:var(--muted);">/قسط</span></div>
+          <div class="small muted" style="margin-top:3px;">کل: ${formatMoney(r.amount)}</div>
+          <div class="small muted">مانده: ${formatMoney(remaining)}</div>
+        </div>
+      `;
+    } else {
+      amountBlockHTML = `
+        <div class="amount-display" style="padding-right:10px;">
+          <div>${formatMoney(r.amount)}</div>
+          <div class="small muted">مانده: ${formatMoney(remaining)}</div>
+        </div>
+      `;
     }
 
+    const borderColor = typeColors[r.type] || 'var(--line)';
+
     return `
-      <div class="item">
+      <div class="item" style="border-right: 4px solid ${borderColor};">
         <div class="item-top">
           <div style="display:flex; gap:12px; align-items:flex-start; flex:1; min-width:0;">
             ${imgHTML}
@@ -771,13 +993,10 @@ function renderList(rows){
               ${notesText}
             </div>
           </div>
-          <div class="amount-display" style="padding-right:10px;">
-            <div>${formatMoney(r.amount)}</div>
-            <div class="small muted">مانده: ${formatMoney(remaining)}</div>
-          </div>
+          ${amountBlockHTML}
         </div>
         <div class="actions">
-          <span class="pill">${typeLabels[r.type]||r.type}</span>
+          <span class="pill type-badge-${r.type}">${typeLabels[r.type]||r.type}</span>
           ${r.status==='closed'?'<span class="pill good">تسویه</span>':(isOverdue(r)?'<span class="pill bad">عقب‌افتاده</span>':'')}
           <span class="pill">سررسید: ${isoToJalaliText(r.dueDate)}</span>
           ${instText}
@@ -827,14 +1046,12 @@ async function render(){
             <span>🔔</span> نیازمند توجه
           </div>
           ${alerts.map(r => `
-            <!-- اضافه شدن قابلیت کلیک و باز شدن پنجره ویرایش -->
-            <div onclick="editRecord('${r.id}')" style="cursor:pointer; background:var(--bg); border:1px solid #334155; padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div onclick="editRecord('${r.id}')" style="cursor:pointer; background:var(--bg); border:1px solid #334155; border-right: 4px solid ${typeColors[r.type]||'#f59e0b'}; padding:10px; border-radius:12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <div style="font-weight:bold; font-size:0.9em; margin-bottom:4px;">
-                  ${escapeHtml(r.title)}
-                  ${r.alertType === 'overdue' ? '<span class="pill bad" style="padding:2px 6px; font-size:0.7em">گذشته</span>' : '<span class="pill warn" style="padding:2px 6px; font-size:0.7em">نزدیک</span>'}
+                  ${escapeHtml(r.title)}${r.alertType === 'overdue' ? '<span class="pill bad" style="padding:2px 6px; font-size:0.7em">گذشته</span>' : '<span class="pill warn" style="padding:2px 6px; font-size:0.7em">نزدیک</span>'}
                 </div>
-                <div class="small muted">${typeLabels[r.type]||r.type} • ${isoToJalaliText(r.dueDate)}</div>
+                <div class="small muted">${typeLabels[r.type]\vert{}\vert{}r.type} •${isoToJalaliText(r.dueDate)}</div>
               </div>
               <div style="font-family:monospace; font-weight:bold; color:var(--text)">${formatMoney(r.alertAmt)}</div>
             </div>
@@ -843,6 +1060,7 @@ async function render(){
       `;
   } else { remindersWrap.innerHTML = ''; }
 
+  renderMonthlyRadar(rows);
   renderList(filtered(rows));
 }
 
@@ -863,27 +1081,23 @@ function bindUI(){
     btn.classList.add('active'); currentStatus = btn.dataset.filter; render();
   }));
 
-  // متد هوشمند اتصال به افزونه بومی اشتراک‌گذاری
   document.getElementById('backupBtn').onclick = async () => {
     const rows = await getAll();
     const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
     const jsonStr = JSON.stringify(payload, null, 2);
     const fileName = `backup-${todayISO()}.json`;
 
-    // بررسی اینکه آیا افزونه بومی لود شده است (فقط داخل اپلیکیشن اندروید کار می‌کند)
     if (window.plugins && window.plugins.socialsharing) {
-        // تبدیل دیتای بکاپ به فرمت فایل بومی اندروید
         const base64Data = "data:application/json;base64," + btoa(unescape(encodeURIComponent(jsonStr)));
         window.plugins.socialsharing.share(
-            'فایل پشتیبان اطلاعات مالی کارگاه', // پیام
-            fileName, // نام فایل
-            base64Data, // فایل
+            'فایل پشتیبان اطلاعات مالی کارگاه',
+            fileName,
+            base64Data,
             null
         );
         return; 
     }
 
-    // متد جایگزین اول: استفاده از مرورگر (اگر نسخه تحت وب باشد)
     try {
         const file = new File([jsonStr], fileName, { type: "application/json" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -899,7 +1113,6 @@ function bindUI(){
         console.log("ارسال فایل مسدود شد:", err);
     }
 
-    // متد جایگزین دوم (پلن B): باز شدن پنجره دستی اگر دو روش بالا توسط اندروید مسدود شدند
     openModal(`
       <div class="modal-head">
         <div style="font-weight:800;font-size:1.2em;color:var(--accent)">پشتیبان‌گیری دستی</div>
@@ -951,77 +1164,70 @@ function bindUI(){
     e.target.value='';
   };
 }
-// --- سیستم منوی میانبرهای آیکون برنامه (App Shortcuts) ---
-// --- سیستم منوی میانبرهای آیکون برنامه (تخصصی اندروید) ---
-  document.addEventListener('deviceready', function() {
 
+// --- مدیریت دکمه بازگشت اندروید و میانبرهای آیکون برنامه ---
+document.addEventListener('deviceready', function() {
     document.addEventListener("backbutton", function (e) {
-          const imageViewer = document.getElementById('imageViewerModal');
-          const picker = document.getElementById('datePickerOverlay');
-          const backdrop = document.getElementById('backdrop');
+        const imageViewer = document.getElementById('imageViewerModal');
+        const picker = document.getElementById('datePickerOverlay');
+        const backdrop = document.getElementById('backdrop');
 
-          if (imageViewer && imageViewer.classList.contains('show')) {
-              imageViewer.classList.remove('show');
-          } else if (picker) {
-              picker.remove();
-          } else if (backdrop && backdrop.classList.contains('show')) {
-              closeModal(); // اگر فرم یا پنجره‌ای باز است، فقط آن را ببند
-          } else {
-              navigator.app.exitApp(); // اگر در صفحه اصلی بودیم، از برنامه خارج شو
-          }
-      }, false);
-    
-      if (window.plugins && window.plugins.Shortcuts) {
-          // ۱. ساختن گزینه‌های منو
-          const shortcutNew = {
-              id: 'new_record',
-              shortLabel: 'ثبت جدید',
-              longLabel: 'ثبت فاکتور یا بدهی',
-              intent: {
-                  action: 'android.intent.action.RUN',
-                  flags: 67108864, // پاک کردن صفحات اضافی از حافظه
-                  extras: { 'shortcut_action': 'new_record' }
-              }
-          };
-          const shortcutSearch = {
-              id: 'search_record',
-              shortLabel: 'جستجو',
-              longLabel: 'جستجو در حساب‌ها',
-              intent: {
-                  action: 'android.intent.action.RUN',
-                  flags: 67108864,
-                  extras: { 'shortcut_action': 'search_record' }
-              }
-          };
+        if (imageViewer && imageViewer.classList.contains('show')) {
+            imageViewer.classList.remove('show');
+        } else if (picker) {
+            picker.remove();
+        } else if (backdrop && backdrop.classList.contains('show')) {
+            closeModal();
+        } else {
+            navigator.app.exitApp();
+        }
+    }, false);
 
-          // اضافه کردن منوها به هسته اندروید
-          window.plugins.Shortcuts.supportsDynamic(function(supported) {
-              if (supported) {
-                  window.plugins.Shortcuts.setDynamic([shortcutNew, shortcutSearch], function(){}, function(err){});
-              }
-          });
+    if (window.plugins && window.plugins.Shortcuts) {
+        const shortcutNew = {
+            id: 'new_record',
+            shortLabel: 'ثبت جدید',
+            longLabel: 'ثبت فاکتور یا بدهی',
+            intent: {
+                action: 'android.intent.action.RUN',
+                flags: 67108864,
+                extras: { 'shortcut_action': 'new_record' }
+            }
+        };
+        const shortcutSearch = {
+            id: 'search_record',
+            shortLabel: 'جستجو',
+            longLabel: 'جستجو در حساب‌ها',
+            intent: {
+                action: 'android.intent.action.RUN',
+                flags: 67108864,
+                extras: { 'shortcut_action': 'search_record' }
+            }
+        };
 
-          // ۲. انجام عملیات وقتی روی هر منو کلیک شد
-          function handleShortcut(intent) {
-              if (intent && intent.extras && intent.extras.shortcut_action) {
-                  setTimeout(() => {
-                      if (intent.extras.shortcut_action === 'new_record') {
-                          openForm();
-                      } else if (intent.extras.shortcut_action === 'search_record') {
-                          document.getElementById('search').focus();
-                      }
-                  }, 400); // مکث کوتاه برای لود شدن رابط کاربری
-              }
-          }
+        window.plugins.Shortcuts.supportsDynamic(function(supported) {
+            if (supported) {
+                window.plugins.Shortcuts.setDynamic([shortcutNew, shortcutSearch], function(){}, function(err){});
+            }
+        });
 
-          // بررسی کلیک هنگام اجرای اولیه برنامه
-          window.plugins.Shortcuts.getIntent(handleShortcut);
-          // بررسی کلیک وقتی برنامه از قبل در پس‌زمینه باز بوده
-          window.plugins.Shortcuts.onNewIntent(handleShortcut);
-      }
-  });
-  // --------------------------------------------------------
-  // --------------------------------------------------------
+        function handleShortcut(intent) {
+            if (intent && intent.extras && intent.extras.shortcut_action) {
+                setTimeout(() => {
+                    if (intent.extras.shortcut_action === 'new_record') {
+                        openForm();
+                    } else if (intent.extras.shortcut_action === 'search_record') {
+                        document.getElementById('search').focus();
+                    }
+                }, 400);
+            }
+        }
+
+        window.plugins.Shortcuts.getIntent(handleShortcut);
+        window.plugins.Shortcuts.onNewIntent(handleShortcut);
+    }
+});
+
 initDB().then(()=>{ bindUI(); render(); });
 </script>
 </body>
