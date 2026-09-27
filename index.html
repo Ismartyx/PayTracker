@@ -74,14 +74,12 @@
     .pill.warn { background: rgba(245,158,11,.12); color: #fcd34d; border-color: rgba(245,158,11,.26); }
     .pill.bad { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.26); }
     
-    /* رنگ‌بندی اختصاصی انواع تراکنش */
     .type-badge-installment { background: rgba(168,85,247,.16); color: #d8b4fe; border-color: rgba(168,85,247,.35); }
     .type-badge-debt { background: rgba(239,68,68,.16); color: #fca5a5; border-color: rgba(239,68,68,.35); }
     .type-badge-expense { background: rgba(14,165,233,.16); color: #7dd3fc; border-color: rgba(14,165,233,.35); }
     .type-badge-cheque { background: rgba(245,158,11,.16); color: #fcd34d; border-color: rgba(245,158,11,.35); }
     .type-badge-receivable { background: rgba(34,197,94,.16); color: #86efac; border-color: rgba(34,197,94,.35); }
 
-    /* استایل‌های رادار و تقویم ماهانه */
     .radar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .month-nav { display: flex; align-items: center; gap: 6px; background: #0b1220; padding: 4px 6px; border-radius: 12px; border: 1px solid var(--line); }
     .month-nav button { padding: 4px 10px; border-radius: 8px; background: var(--chip); font-size: 0.8em; }
@@ -113,9 +111,15 @@
     .modal { width: min(100%, 760px); max-height: 90vh; overflow-y: auto; background: #0f172a; border-top-left-radius: 24px; border-top-right-radius: 24px; border: 1px solid #243041; padding: 16px; -webkit-overflow-scrolling: touch; transform: translateZ(0); }
     .modal.show, .modal-backdrop.show { display: flex; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
     
+    /* محو شدن تضمینی صفحه شروع با انیمیشن خودکار */
+    #splashScreen {
+      position: fixed; inset: 0; background: linear-gradient(180deg, #08101d 0%, #0b1220 100%);
+      z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      animation: autoHideSplash 0.4s ease 0.9s forwards;
+    }
+    @keyframes autoHideSplash { to { opacity: 0; visibility: hidden; pointer-events: none; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes splashSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
     .modal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
     .small { font-size: 0.75em; }
@@ -130,6 +134,11 @@
     .dateFieldWrap button { white-space: nowrap; padding: 12px 10px; }
     .picker-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     
+    .nc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-left: 4px; background: #64748b; }
+    .nc-dot.ok { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .nc-dot.sync { background: #f59e0b; }
+    .nc-dot.err { background: #ef4444; }
+
     @media (min-width: 600px) {
         .grid { flex-direction: row; }
         .stat { flex-direction: column; align-items: flex-start; flex: 1; }
@@ -141,13 +150,18 @@
 </head>
 <body>
   
-  <div id="splashScreen" style="position:fixed; inset:0; background:linear-gradient(180deg, #08101d 0%, #0b1220 100%); z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.5s ease, visibility 0.5s;">
-      <div style="width: 84px; height: 84px; background: linear-gradient(135deg, #0ea5e9, #2563eb); border-radius: 22px; display:flex; align-items:center; justify-content:center; box-shadow: 0 10px 30px rgba(14,165,233,0.3); margin-bottom: 24px;">
-          <svg width="46" height="46" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+  <!-- صفحه شروع با لوگوی M سفید بدون هیچ کادر و حاشیه‌ای -->
+  <div id="splashScreen">
+      <div style="margin-bottom: 22px; display:flex; align-items:center; justify-content:center;">
+          <svg width="86" height="86" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="15,25 50,52 85,25 85,41 50,68 15,41" fill="#ffffff"/>
+            <polygon points="15,47 34,62 34,82 15,70" fill="#ffffff"/>
+            <polygon points="85,47 66,62 66,82 85,70" fill="#ffffff"/>
+          </svg>
       </div>
       <h1 style="color: white; margin: 0; font-size: 1.6em; font-weight: 800; letter-spacing: -0.5px;">دفتر مالی کارگاه</h1>
       <p style="color: #94a3b8; font-size: 0.9em; margin-top: 8px;">نسخه اپلیکیشن بومی</p>
-      <div style="margin-top: 40px; width: 36px; height: 36px; border: 3px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: splashSpin 1s linear infinite;"></div>
+      <div style="margin-top: 36px; width: 34px; height: 34px; border: 3px solid #1e293b; border-top-color: #38bdf8; border-radius: 50%; animation: splashSpin 0.9s linear infinite;"></div>
   </div>
 
   <div class="toast" id="toast"><div class="card" id="toastText"></div></div>
@@ -180,14 +194,14 @@
 
     <div class="toolbar">
       <button class="primary" id="addBtn">+ ثبت جدید</button>
-      <button id="backupBtn">اشتراک و بکاپ 📤</button>
+      <button id="nextcloudBtn"><span id="ncStatusDot" class="nc-dot"></span>نکست‌کلاد ☁️</button>
+      <button id="backupBtn">بکاپ 📤</button>
       <button id="importBtn">بازیابی 📥</button>
       <input type="file" id="importFile" accept="application/json" hidden />
     </div>
 
     <div id="remindersWrap"></div>
 
-    <!-- بخش جدید: رادار و تقویم ماهانه (نمایش رنگ‌بندی شده و فاصله بین پرداخت‌ها) -->
     <div id="monthlyRadarWrap" style="margin-bottom: 14px;"></div>
 
     <div class="tabs" id="tabs">
@@ -234,7 +248,6 @@
     <div class="modal" id="modal"></div>
   </div>
 
-  <!-- مودال نمایش عکس به صورت تمام صفحه -->
   <div class="modal-backdrop" id="imageViewerModal" style="z-index: 10000; align-items: center; justify-content: center;" onclick="this.classList.remove('show')">
       <div style="position: relative; max-width: 95%; max-height: 90vh;">
           <img id="fullSizeImage" style="width: 100%; max-height: 90vh; border-radius: 16px; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.6);" />
@@ -245,14 +258,11 @@
   <script src="cordova.js"></script>
 
 <script>
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        const splash = document.getElementById('splashScreen');
-        splash.style.opacity = '0';
-        splash.style.visibility = 'hidden';
-        setTimeout(() => splash.remove(), 500);
-    }, 800);
-});
+// حذف تضمینی صفحه شروع پس از ۱ ثانیه بدون وابستگی به رویدادهای مرورگر
+setTimeout(() => {
+    const splash = document.getElementById('splashScreen');
+    if (splash) splash.remove();
+}, 1100);
 
 let currentFontSize = parseInt(localStorage.getItem('appFontSize')) || 16;
 document.documentElement.style.setProperty('--fz', currentFontSize + 'px');
@@ -335,19 +345,188 @@ window.toggleRadarBody = function() {
 const stateLabels = { open: 'باز', partial: 'بخشی پرداخت شده', closed: 'تسویه شده' };
 const typeLabels = { debt: 'بدهی', receivable: 'طلب', cheque: 'چک', installment: 'قسط', expense: 'هزینه ثابت', income: 'درآمد' };
 const typeColors = {
-  installment: '#a855f7', // بنفش
-  debt: '#ef4444',        // قرمز
-  expense: '#0ea5e9',     // آبی
-  cheque: '#f59e0b',      // نارنجی
-  receivable: '#22c55e',  // سبز
+  installment: '#a855f7',
+  debt: '#ef4444',
+  expense: '#0ea5e9',
+  cheque: '#f59e0b',
+  receivable: '#22c55e',
   income: '#22c55e'
 };
 
 function showToast(msg){
   const t = document.getElementById('toast');
   document.getElementById('toastText').innerHTML = msg;
-  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000);
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200);
 }
+
+// --- سیستم بکاپ خودکار نکست‌کلاد (WebDAV) ---
+const NC_STORAGE_KEY = 'workshop_nextcloud_config';
+const NC_FILENAME = 'Workshop-Finance-Backup.json';
+
+function getNcConfig() {
+  try { return JSON.parse(localStorage.getItem(NC_STORAGE_KEY)) || null; } catch(e) { return null; }
+}
+
+function updateNcIndicator(state) {
+  const dot = document.getElementById('ncStatusDot');
+  if (!dot) return;
+  dot.className = 'nc-dot ' + (state || '');
+}
+
+function buildNcUrls(cfg) {
+  let base = (cfg.url || '').trim().replace(/\/+$/, '');
+  if (!/^https?:\/\//i.test(base)) base = 'https://' + base;
+  const file = (cfg.filename || NC_FILENAME).trim().replace(/^\/+/, '');
+  if (base.includes('/remote.php/')) {
+    return [base + '/' + file];
+  }
+  return [
+    `${base}/remote.php/webdav/${file}`,
+    `${base}/remote.php/dav/files/${encodeURIComponent(cfg.user.trim())}/${file}`
+  ];
+}
+
+function ncRequest(method, url, authHeader, bodyStr) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    xhr.setRequestHeader('Authorization', authHeader);
+    if (bodyStr !== null) {
+      xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+    xhr.timeout = 20000;
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.responseText);
+      else reject(new Error('HTTP ' + xhr.status));
+    };
+    xhr.onerror = () => reject(new Error('خطای شبکه یا عدم دسترسی به سرور'));
+    xhr.ontimeout = () => reject(new Error('زمان اتصال به پایان رسید'));
+    xhr.send(bodyStr);
+  });
+}
+
+async function syncToNextcloud(silent = true) {
+  const cfg = getNcConfig();
+  if (!cfg || !cfg.url || !cfg.user || !cfg.pass) return false;
+  if (silent && cfg.autoSync === false) return false;
+
+  updateNcIndicator('sync');
+  const rows = await getAll();
+  const payload = { app: "Workshop Finance Pro", schemaVersion: 4, exportedAt: new Date().toISOString(), records: rows };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const auth = 'Basic ' + btoa(unescape(encodeURIComponent(cfg.user.trim() + ':' + cfg.pass)));
+  const urls = buildNcUrls(cfg);
+
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      await ncRequest('PUT', u, auth, jsonStr);
+      updateNcIndicator('ok');
+      localStorage.setItem('workshop_nc_last_sync', new Date().toISOString());
+      if (!silent) showToast('☁️ بکاپ با موفقیت در نکست‌کلاد ذخیره شد');
+      else showToast('☁️ ذخیره و در نکست‌کلاد بکاپ شد');
+      return true;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  updateNcIndicator('err');
+  if (!silent) alert('خطا در اتصال به نکست‌کلاد:\n' + (lastErr ? lastErr.message : 'نامشخص'));
+  return false;
+}
+
+window.restoreFromNextcloud = async function() {
+  const cfg = getNcConfig();
+  if (!cfg || !cfg.url || !cfg.user || !cfg.pass) {
+    alert('ابتدا مشخصات سرور نکست‌کلاد را وارد و ذخیره کنید.');
+    return;
+  }
+  updateNcIndicator('sync');
+  const auth = 'Basic ' + btoa(unescape(encodeURIComponent(cfg.user.trim() + ':' + cfg.pass)));
+  const urls = buildNcUrls(cfg);
+
+  let lastErr = null;
+  for (const u of urls) {
+    try {
+      const resText = await ncRequest('GET', u, auth, null);
+      const d = JSON.parse(resText);
+      const rows = Array.isArray(d) ? d : (d.records || []);
+      for (let x of rows) {
+        await saveRecordRaw(x);
+      }
+      updateNcIndicator('ok');
+      closeModal();
+      await render();
+      showToast('☁️ اطلاعات از نکست‌کلاد بازیابی شد');
+      return;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  updateNcIndicator('err');
+  alert('فایل بکاپ در نکست‌کلاد پیدا نشد یا خطا رخ داد:\n' + (lastErr ? lastErr.message : ''));
+};
+
+window.openNextcloudModal = function() {
+  const cfg = getNcConfig() || { url: '', user: '', pass: '', filename: NC_FILENAME, autoSync: true };
+  const lastSync = localStorage.getItem('workshop_nc_last_sync');
+  const lastSyncText = lastSync ? isoToJalaliText(lastSync.slice(0,10)) + ' ساعت ' + new Date(lastSync).toTimeString().slice(0,5) : 'هنوز انجام نشده';
+
+  openModal(`
+    <div class="modal-head">
+      <div style="font-weight:800;font-size:1.15em;color:var(--accent)">☁️ بکاپ خودکار نکست‌کلاد</div>
+      <button type="button" onclick="closeModal()">بستن</button>
+    </div>
+    <form id="ncForm">
+      <div class="small muted" style="line-height:1.6; margin-bottom:8px;">
+        با وارد کردن مشخصات زیر، پس از ثبت، ویرایش یا پرداخت هر مورد، بکاپ به صورت خودکار به نکست‌کلاد شما ارسال می‌شود.
+      </div>
+      <label>آدرس سرور نکست‌کلاد (URL)</label>
+      <input name="url" dir="ltr" value="${escapeHtml(cfg.url)}" placeholder="https://cloud.example.com" required>
+      
+      <div class="row">
+        <div>
+          <label>نام کاربری (Username)</label>
+          <input name="user" dir="ltr" value="${escapeHtml(cfg.user)}" placeholder="username" required>
+        </div>
+        <div>
+          <label>رمز عبور / App Password</label>
+          <input name="pass" type="password" dir="ltr" value="${escapeHtml(cfg.pass)}" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <label>نام فایل بکاپ در نکست‌کلاد</label>
+      <input name="filename" dir="ltr" value="${escapeHtml(cfg.filename || NC_FILENAME)}">
+
+      <label style="display:flex; align-items:center; gap:8px; margin-top:14px; color:var(--text); font-size:0.9em; cursor:pointer;">
+        <input type="checkbox" name="autoSync" style="width:20px; height:20px;" ${cfg.autoSync !== false ? 'checked' : ''}>
+        بکاپ خودکار بلافاصله پس از هر تغییر اطلاعات
+      </label>
+
+      <div class="small muted" style="margin-top:10px;">آخرین بکاپ موفق: <b style="color:var(--text)">${lastSyncText}</b></div>
+
+      <div class="actions" style="margin-top:16px;">
+        <button type="submit" class="primary" style="flex:1.5">💾 ذخیره و تست بکاپ فوری</button>
+        <button type="button" class="good" style="flex:1" onclick="restoreFromNextcloud()">📥 بازیابی از ابر</button>
+      </div>
+    </form>
+  `);
+
+  document.getElementById('ncForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const newCfg = {
+      url: fd.get('url').trim(),
+      user: fd.get('user').trim(),
+      pass: fd.get('pass'),
+      filename: fd.get('filename').trim() || NC_FILENAME,
+      autoSync: fd.get('autoSync') === 'on'
+    };
+    localStorage.setItem(NC_STORAGE_KEY, JSON.stringify(newCfg));
+    closeModal();
+    await syncToNextcloud(false);
+  };
+};
 
 window.addEventListener('popstate', function(e) {
   const picker = document.getElementById('datePickerOverlay');
@@ -437,14 +616,14 @@ window.removeImage = function(index) {
 window.customConfirm = function(msg, onConfirm) {
     openModal(`
         <div class="modal-head">
-          <div style="font-weight:800;font-size:1.2em;color:var(--warn)">تایید پرداخت</div>
+          <div style="font-weight:800;font-size:1.2em;color:var(--warn)">تایید عملیات</div>
           <button onclick="closeModal()">لغو</button>
         </div>
         <div style="padding: 20px 10px; text-align: center; font-size: 1.1em; line-height: 1.6;">
             ${msg.replace(/\n/g, '<br>')}
         </div>
         <div class="row" style="margin-top: 15px;">
-            <button class="good" onclick="submitCustomConfirm()">بله، پرداخت شد</button>
+            <button class="good" onclick="submitCustomConfirm()">بله، تایید</button>
             <button class="bad" onclick="closeModal()">خیر، انصراف</button>
         </div>
     `);
@@ -745,20 +924,26 @@ async function processPayment(id){
 }
 
 async function initDB(){
-  return new Promise((resolve, reject)=>{
+  return new Promise((resolve)=>{
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
     };
     req.onsuccess = () => { db = req.result; resolve(db); };
+    req.onerror = () => { resolve(null); };
   });
 }
 
 function tx(storeName=STORE, mode='readonly'){ return db.transaction(storeName, mode).objectStore(storeName); }
-function getAll(){ return new Promise((res,rej)=>{ const r = tx(STORE).getAll(); r.onsuccess=()=>res(r.result||[]); }); }
-function getRecord(id){ return new Promise((res,rej)=>{ const r = tx(STORE).get(id); r.onsuccess=()=>res(r.result); }); }
-function saveRecord(record){ return new Promise((res,rej)=>{ const r = tx(STORE, 'readwrite').put(record); r.onsuccess=()=>res(true); }); }
+function getAll(){ return new Promise((res)=>{ if(!db) return res([]); const r = tx(STORE).getAll(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>res([]); }); }
+function getRecord(id){ return new Promise((res)=>{ const r = tx(STORE).get(id); r.onsuccess=()=>res(r.result); }); }
+function saveRecordRaw(record){ return new Promise((res)=>{ const r = tx(STORE, 'readwrite').put(record); r.onsuccess=()=>res(true); }); }
+async function saveRecord(record){
+  await saveRecordRaw(record);
+  // ارسال خودکار به نکست‌کلاد پس از هر ثبت، ویرایش، پرداخت یا حذف
+  syncToNextcloud(true);
+}
 async function softDeleteRecord(id){ const r=await getRecord(id); if(r){ r.deleted=true; await saveRecord(r); } }
 
 function sortRecords(arr){
@@ -792,7 +977,6 @@ function filtered(arr){
   return sortRecords(out);
 }
 
-// رندر کردن رادار و تقویم ماهانه به همراه فاصله‌سنج بین پرداخت‌ها
 function renderMonthlyRadar(rows) {
   const wrap = document.getElementById('monthlyRadarWrap');
   if (!wrap) return;
@@ -800,7 +984,6 @@ function renderMonthlyRadar(rows) {
   const maxDays = radarMonth <= 6 ? 31 : (radarMonth === 12 ? 29 : 30);
   const todayP = isoToJalaliParts(todayISO());
 
-  // فیلتر کردن هزینه‌های باز در ماه انتخاب شده
   const monthItems = [];
   let sumInst = 0, sumDebt = 0, sumExp = 0, sumChq = 0;
 
@@ -826,7 +1009,6 @@ function renderMonthlyRadar(rows) {
   monthItems.sort((a, b) => a.jDay - b.jDay);
   const totalMonth = sumInst + sumDebt + sumExp + sumChq;
 
-  // ساخت نقاط روزهای ماه برای تقویم
   const dayMap = {};
   monthItems.forEach(item => {
     if (!dayMap[item.jDay]) dayMap[item.jDay] = [];
@@ -847,7 +1029,6 @@ function renderMonthlyRadar(rows) {
     `;
   }
 
-  // ساخت تایم‌لاین و محاسبه فاصله (روزها) بین قسط‌ها و بدهی‌ها
   let timelineHTML = '';
   if (monthItems.length === 0) {
     timelineHTML = `<div class="small muted" style="text-align:center; padding: 12px 0;">در این ماه هیچ قسط، بدهی یا هزینه بازی ثبت نشده است.</div>`;
@@ -954,7 +1135,6 @@ function renderList(rows){
         `;
     }
     
-    // تغییر ۱: بولد و بزرگ شدن مبلغ هر قسط به جای مبلغ کل و نمایش کل و مانده در زیر آن
     let amountBlockHTML = '';
     if(r.type === 'installment') {
       let each = r.instEachAmount || Math.round((r.amount || 0) / (r.scheduleCount || 1));
@@ -1067,8 +1247,11 @@ async function render(){
 function bindUI(){
   document.getElementById('addBtn').onclick = ()=>openForm();
   document.getElementById('fab').onclick = ()=>openForm();
+  document.getElementById('nextcloudBtn').onclick = ()=>openNextcloudModal();
   document.getElementById('search').oninput = render;
   document.getElementById('sortBy').onchange = render;
+
+  if (getNcConfig()) updateNcIndicator('ok');
   
   document.getElementById('tabs').addEventListener('click', (e)=>{
     if(e.target.tagName!=='BUTTON') return;
@@ -1109,9 +1292,7 @@ function bindUI(){
             showToast('✅ ارسال فایل انجام شد');
             return; 
         }
-    } catch (err) {
-        console.log("ارسال فایل مسدود شد:", err);
-    }
+    } catch (err) {}
 
     openModal(`
       <div class="modal-head">
@@ -1119,22 +1300,13 @@ function bindUI(){
         <button type="button" onclick="closeModal()">بستن</button>
       </div>
       <div style="padding: 10px 0; text-align: center;">
-          <p style="font-size: 0.9em; color: var(--warn); margin-bottom: 10px; line-height: 1.6;">
-              سیستم‌عامل گوشی اجازه ارسال مستقیم فایل را نداد. لطفاً روی دکمه زیر کلیک کنید تا اطلاعات کپی شود. سپس آن را در تلگرام یا یک یادداشت ذخیره (Paste) کنید.
-          </p>
           <textarea id="backupText" readonly style="width:100%; height:120px; font-family:monospace; font-size:0.75em; direction:ltr; background:#1e293b; color:#94a3b8; border:1px solid #334155; border-radius:12px; padding:8px;">${jsonStr}</textarea>
       </div>
       <div style="margin-top: 15px;">
           <button class="good" style="width:100%; padding:14px; font-size:1.1em;" onclick="
               const txt = document.getElementById('backupText');
               txt.select();
-              txt.setSelectionRange(0, 999999);
-              navigator.clipboard.writeText(txt.value).then(() => {
-                  showToast('✅ کپی شد! حالا در جای امنی Paste کنید');
-              }).catch(() => {
-                  document.execCommand('copy');
-                  showToast('✅ کپی شد! حالا در جای امنی Paste کنید');
-              });
+              navigator.clipboard.writeText(txt.value).then(() => showToast('✅ کپی شد!')).catch(() => { document.execCommand('copy'); showToast('✅ کپی شد!'); });
           ">📋 کپی کردن کل اطلاعات</button>
       </div>
     `);
@@ -1152,9 +1324,10 @@ function bindUI(){
           if (x.issueDateEpochDay && !x.issueDate) x.issueDate = new Date(x.issueDateEpochDay * 86400000).toISOString().split('T')[0];
           if (x.dueDateEpochDay && !x.dueDate) x.dueDate = new Date(x.dueDateEpochDay * 86400000).toISOString().split('T')[0];
           if (x.type === 'installment' && x.scheduleCount > 1 && !x.instEachAmount) x.instEachAmount = Math.round(x.amount / x.scheduleCount);
-          await saveRecord(x);
+          await saveRecordRaw(x);
         }
         await render();
+        syncToNextcloud(true);
         showToast('با موفقیت بازیابی شد');
       } catch(err) {
         alert('فایل بک‌آپ خوانده نشد.');
@@ -1165,7 +1338,6 @@ function bindUI(){
   };
 }
 
-// --- مدیریت دکمه بازگشت اندروید و میانبرهای آیکون برنامه ---
 document.addEventListener('deviceready', function() {
     document.addEventListener("backbutton", function (e) {
         const imageViewer = document.getElementById('imageViewerModal');
